@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow">
+<title>年末調整 資料ダウンロード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* Layout: one reading column — choose how to submit, check the dates, then the shelf of documents; foreign-language guides below */
+:root{
+  --bg:#f5f7f6; --paper:#ffffff; --ink:#1d2a28; --muted:#5d6b68; --line:#d5dedb;
+  --accent:#1f6f6b; --accent-ink:#ffffff; --accent-soft:#e2efed;
+  --warn:#9a5b00; --warn-soft:#fdf1dc; --bad:#b3261e; --bad-soft:#fbe9e7;
+  --display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --body:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  color-scheme:light; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#121816; --paper:#1a2220; --ink:#e4ebe9; --muted:#9fb0ac; --line:#2f3b38;
+  --accent:#5cbcb4; --accent-ink:#0d1a18; --accent-soft:#1f3532;
+  --warn:#f0b863; --warn-soft:#3a2d16; --bad:#f2938b; --bad-soft:#3d1f1c; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.75;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px}
+.wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.4;text-wrap:balance}
+h1{font-size:1.55rem} h2{font-size:1.18rem} h3{font-size:1rem}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.lead{color:var(--muted);margin:0}
+.langs{display:flex;flex-wrap:wrap;gap:8px}
+.langs a{border:1px solid var(--line);background:var(--paper);color:var(--ink);text-decoration:none;border-radius:999px;padding:4px 12px;font-size:.88rem}
+.langs a:hover,.langs a:focus-visible{border-color:var(--accent);color:var(--accent)}
+section.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 18px;display:flex;flex-direction:column;gap:14px}
+.choose{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:600px){.choose{grid-template-columns:1fr}}
+.opt{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.opt.main{border-color:var(--accent);background:var(--accent-soft)}
+.opt p{margin:0;font-size:.9rem}
+.btn{display:inline-block;text-decoration:none;background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:9px 14px;font-weight:700;font-size:.92rem;text-align:center}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.tag{display:inline-block;font-size:.72rem;border-radius:999px;padding:1px 8px;background:var(--accent);color:var(--accent-ink);font-weight:700;margin-right:6px;vertical-align:2px}
+.sched{display:flex;flex-direction:column}
+.sched .row{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.sched .row:last-child{border-bottom:0}
+.sched .d{font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
+.sched .who{font-size:.75rem;color:var(--muted);margin-left:6px}
+.sched .hot .d,.sched .hot b{color:var(--bad)}
+@media (max-width:480px){.sched .row{grid-template-columns:1fr;gap:0}}
+.files{display:flex;flex-direction:column;gap:10px}
+.file{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.ico{width:44px;height:52px;border-radius:6px;background:var(--bad-soft);color:var(--bad);display:grid;place-items:center;font-size:.7rem;font-weight:700;letter-spacing:.05em}
+.file h3{font-size:.95rem}
+.file p{margin:0;font-size:.8rem;color:var(--muted)}
+.file .btn{padding:7px 12px;font-size:.85rem}
+@media (max-width:480px){.file{grid-template-columns:1fr auto}.ico{display:none}}
+.group{font-size:.82rem;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-top:4px}
+.note{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:10px 14px;font-size:.88rem}
+.note b{color:inherit}
+ul.plain{margin:0;padding-left:1.2em} ul.plain li{margin:2px 0}
+.fl{display:flex;flex-direction:column;gap:12px}
+details.lang{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--paper)}
+details.lang>summary{cursor:pointer;font-family:var(--display);font-weight:700;font-size:1.02rem}
+details.lang[open]>summary{margin-bottom:10px}
+details.lang .inner{display:flex;flex-direction:column;gap:10px}
+details.lang p{margin:0}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+footer{text-align:center;color:var(--muted);font-size:.8rem}
+a{color:var(--accent)}
+a:focus-visible,summary:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
+</style></head><body>
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:8px">
+  <div class="eyebrow">令和8年分（2026年分）年末調整｜【MEJIRO会計事務所】</div>
+  <h1>年末調整 資料ダウンロード</h1>
+  <p class="lead">年末調整に使う申告書、記入例、手順書をまとめています。提出方法は、会社の経理担当者の指示に従ってください。</p>
+  <nav class="langs" aria-label="Language">
+    <a href="#ja">日本語</a><a href="#en">English</a><a href="#zh">中文</a><a href="#vi">Tiếng Việt</a><a href="#pt">Português</a><a href="#es">Español</a><a href="#fil">Filipino</a><a href="#ne">नेपाली</a>
+  </nav>
+</header>
+
+<section class="card" id="ja">
+  <h2>提出方法を選ぶ</h2>
+  <div class="choose">
+    <div class="opt main">
+      <h3><span class="tag">おすすめ</span>スマホで提出する</h3>
+      <p>画面の案内に沿って入力すると、扶養に入るかどうかや控除額が自動で表示されます。紙の申告書は不要です。最後に出る「回答」と証明書の写真を経理担当者に送れば完了です。</p>
+      <a class="btn" href="./">入力フォームを開く</a>
+      <a class="btn ghost" href="r8_smartphone_employee.pdf">スマホ提出の手順書（PDF）</a>
+      <a class="btn ghost" href="flow.html">経理ご担当者向け：かんたんガイド</a>
+    </div>
+    <div class="opt">
+      <h3>紙で提出する</h3>
+      <p>下の「申告書の様式」を印刷して手書きで記入し、控除証明書の原本を添えて経理担当者に提出してください。記入例を見ながら書くと迷いません。</p>
+      <a class="btn ghost" href="#forms">申告書の様式へ</a>
+      <a class="btn ghost" href="r8_kinyurei.pdf">記入例（PDF）</a>
+    </div>
+  </div>
+  <div class="note"><b>氏名には必ずフリガナを書いてください。</b>外国籍の方は、在留カードどおりのアルファベット表記とカタカナの読みを両方書いてください。マイナンバーの記入方法は会社の指示に従ってください。</div>
+</section>
+
+<section class="card" id="schedule">
+  <h2>年末調整のスケジュール（目安）</h2>
+  <div class="sched">
+    <div class="row"><div class="d">11月上旬</div><div>会社から年末調整の案内（スマホのリンク、または紙の申告書）が届きます<span class="who">会社→従業員</span></div></div>
+    <div class="row hot"><div class="d">11月20日（金）</div><div><b>従業員の提出期限</b>。回答または申告書と、控除証明書（写真または原本）を経理担当者へ<span class="who">従業員→会社</span></div></div>
+    <div class="row hot"><div class="d">11月27日（金）</div><div><b>会社から事務所への送付期限</b>。スマホの場合は「まとめコード」と証明書の写真、紙の場合は申告書一式<span class="who">会社→事務所</span></div></div>
+    <div class="row"><div class="d">12月上旬</div><div>12月の給与・賞与の金額（確定または見込み）を事務所へ<span class="who">会社→事務所</span></div></div>
+    <div class="row"><div class="d">12月中旬</div><div>事務所で年末調整を計算し、結果（還付・徴収の金額）をご報告<span class="who">事務所→会社</span></div></div>
+    <div class="row"><div class="d">12月または1月の給与</div><div>年末調整の精算。払いすぎの税金は戻り、足りない分は給与から差し引かれます<span class="who">会社→従業員</span></div></div>
+    <div class="row"><div class="d">2027年1月12日（火）</div><div>源泉所得税の納付期限（毎月納付の会社・12月分）</div></div>
+    <div class="row"><div class="d">2027年1月20日（水）</div><div>源泉所得税の納付期限（納期の特例の会社・7〜12月分）</div></div>
+    <div class="row"><div class="d">2027年1月31日（日）</div><div>源泉徴収票を従業員に交付</div></div>
+    <div class="row"><div class="d">2027年2月1日（月）</div><div>法定調書合計表・給与支払報告書の提出（事務所で対応）</div></div>
+  </div>
+  <p class="lead" style="font-size:.85rem">会社ごとの日程が案内されている場合は、そちらを優先してください。</p>
+</section>
+
+<section class="card" id="docs">
+  <h2>資料</h2>
+  <div class="files">
+    <div class="group">まず読む</div>
+    <div class="file"><div class="ico">PDF</div><div><h3>年末調整のご案内（5ページ）</h3><p>年末調整のしくみ、令和8年の主な変更点、扶養の注意点、手続きの流れ</p></div><a class="btn" href="r8_annai.pdf">開く</a></div>
+    <div class="file"><div class="ico">PDF</div><div><h3>記載例（図解・2ページ）</h3><p>家族の誰をどの欄に書くか、控除証明書のどの数字を書くかを色分けで説明</p></div><a class="btn" href="r8_kisairei.pdf">開く</a></div>
+    <div class="file"><div class="ico">PDF</div><div><h3>記入例（国税庁の様式に記入・3ページ）</h3><p>扶養控除等申告書／基礎控除・配偶者控除等申告書／保険料控除申告書</p></div><a class="btn" href="r8_kinyurei.pdf">開く</a></div>
+    <div class="group">スマホで提出する場合</div>
+    <div class="file"><div class="ico">PDF</div><div><h3>かんたんガイド（経理ご担当者向け）</h3><p>全体の流れと4ステップを図で説明。<a href="flow.html">Web版はこちら</a></p></div><a class="btn" href="r8_kantan_guide.pdf">開く</a></div>
+    <div class="file"><div class="ico">PDF</div><div><h3>スマホ提出の手順（従業員用・2ページ）</h3><p>入力のしかた、回答と証明書の写真の送り方</p></div><a class="btn" href="r8_smartphone_employee.pdf">開く</a></div>
+    <div class="file"><div class="ico">PDF</div><div><h3>取りまとめの手順（経理ご担当者用・2ページ）</h3><p>回答の取りまとめ、住民税の徴収方法の選択、事務所への送付</p></div><a class="btn" href="r8_smartphone_keiri.pdf">開く</a></div>
+    <div class="file"><div class="ico">WEB</div><div><h3>取りまとめページ（経理ご担当者用）</h3><p>従業員から届いた回答を貼り付けて一覧にするページ</p></div><a class="btn" href="torimatome.html">開く</a></div>
+    <div class="group" id="forms">申告書の様式（紙で提出する場合・A4横で印刷）</div>
+    <div class="file"><div class="ico">PDF</div><div><h3>扶養控除等（異動）申告書</h3><p>全員が提出します</p></div><a class="btn" href="r8_fuyo_form.pdf">開く</a></div>
+    <div class="file"><div class="ico">PDF</div><div><h3>基礎控除申告書 兼 配偶者控除等申告書 兼 特定親族特別控除申告書 兼 所得金額調整控除申告書</h3><p>全員が提出します（配偶者・特定親族がいない人も、基礎控除の欄を記入）</p></div><a class="btn" href="r8_kihai_form.pdf">開く</a></div>
+    <div class="file"><div class="ico">PDF</div><div><h3>保険料控除申告書</h3><p>生命保険・地震保険・国民年金・iDeCoなどがある人</p></div><a class="btn" href="r8_hoken_form.pdf">開く</a></div>
+  </div>
+  <p class="lead" style="font-size:.85rem">様式は国税庁のものです。最新版は<a href="https://www.nta.go.jp/users/gensen/nencho/shinkokusyo/index.htm" target="_blank" rel="noopener">国税庁「年末調整関係書類」のページ</a>でも確認できます。住宅ローン控除（2年目以降）の申告書は、税務署から届いたものを使ってください。</p>
+</section>
+
+<section class="card" id="foreign">
+  <h2>For foreign employees ／ 外国籍の方へ</h2>
+  <p class="lead">Choose your language. The translated forms are for reference only — please submit the Japanese form (or use the smartphone form).</p>
+  <div class="fl">
+
+<details class="lang" id="en"><summary>English</summary><div class="inner">
+<p><b>What is the year-end adjustment?</b> Your company recalculates the income tax for the whole year (January–December). If too much tax was withheld from your salary, you get it back; if too little, the difference is deducted from your salary in December or January.</p>
+<p><b>What you need to do</b></p>
+<ul class="plain">
+<li>Submit the forms by the deadline your company gives you (guideline: <b>November 20</b>).</li>
+<li>Write your name in <b>alphabet exactly as on your residence card</b>, and also its <b>katakana</b> reading.</li>
+<li>If you support family members who live <b>outside Japan</b>, you must attach (1) documents proving the family relationship and (2) records of money transfers to them, both with Japanese translations. Family members aged 30–69 living abroad qualify only if they are students, disabled, or you sent them ¥380,000 or more this year.</li>
+<li>Insurance certificates: use the 2026 certificate and write the “declared amount” (expected amount for the whole year).</li>
+<li>If you joined the company this year, submit the withholding slip (源泉徴収票) from your previous employer.</li>
+</ul>
+<p>The smartphone form is in Japanese. If it is difficult, ask your company's accounting staff, or use the paper forms with the English reference translation below.</p>
+<div class="links"><a class="btn ghost" href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/gensen/pdf/r08_01_en.pdf" target="_blank" rel="noopener">2026 Dependents form – English reference</a><a class="btn ghost" href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/gensen/mokuji.htm" target="_blank" rel="noopener">Other forms in foreign languages (NTA)</a></div>
+</div></details>
+
+<details class="lang" id="zh"><summary>中文（简体）</summary><div class="inner">
+<p><b>什么是年末调整？</b>公司会重新计算您全年（1月至12月）的所得税。多扣的税款会退还给您，少扣的部分会从12月或1月的工资中扣除。</p>
+<ul class="plain">
+<li>请在公司规定的期限前提交（参考：<b>11月20日</b>）。</li>
+<li>姓名请按照<b>在留卡上的英文字母</b>填写，并同时填写<b>片假名</b>读音。</li>
+<li>如果您扶养<b>居住在日本以外</b>的家属，需要提交亲属关系证明文件和汇款证明文件（均需附日文翻译）。居住在国外的30至69岁家属，仅限留学生、残障人士或本年度汇款38万日元以上的情况。</li>
+<li>保险扣除证明书请使用2026年度的，并填写“申告额”（全年预计金额）。</li>
+<li>今年入职的人，请提交前公司的“源泉征收票”。</li>
+</ul>
+<p>手机填写表格为日文。如有困难，请咨询公司的财务负责人，或使用纸质表格。外语版表格仅供参考，请提交日文表格。</p>
+<div class="links"><a class="btn ghost" href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/gensen/mokuji.htm" target="_blank" rel="noopener">外语版表格（日本国税厅）</a></div>
+</div></details>
+
+<details class="lang" id="vi"><summary>Tiếng Việt</summary><div class="inner">
+<p><b>Điều chỉnh cuối năm là gì?</b> Công ty sẽ tính lại thuế thu nhập cả năm (tháng 1 đến tháng 12) của bạn. Nếu bị khấu trừ quá nhiều, bạn sẽ được hoàn lại; nếu thiếu, phần chênh lệch sẽ bị trừ vào lương tháng 12 hoặc tháng 1.</p>
+<ul class="plain">
+<li>Hãy nộp trước hạn công ty thông báo (tham khảo: <b>ngày 20 tháng 11</b>).</li>
+<li>Viết họ tên bằng <b>chữ cái La-tinh đúng như trên thẻ lưu trú</b>, và ghi thêm cách đọc bằng <b>Katakana</b>.</li>
+<li>Nếu bạn nuôi người thân <b>sống ngoài Nhật Bản</b>, cần nộp giấy tờ chứng minh quan hệ gia đình và giấy tờ chứng minh chuyển tiền (kèm bản dịch tiếng Nhật). Người thân sống ở nước ngoài từ 30 đến 69 tuổi chỉ được tính nếu là du học sinh, người khuyết tật, hoặc bạn đã gửi từ 380.000 yên trở lên trong năm.</li>
+<li>Giấy chứng nhận bảo hiểm phải là của năm 2026, ghi “số tiền khai báo” (dự kiến cả năm).</li>
+<li>Người vào công ty trong năm nay hãy nộp phiếu khấu trừ thuế (源泉徴収票) của công ty cũ.</li>
+</ul>
+<p>Biểu mẫu trên điện thoại bằng tiếng Nhật. Nếu khó khăn, hãy hỏi bộ phận kế toán của công ty hoặc dùng biểu mẫu giấy. Bản dịch chỉ để tham khảo, hãy nộp biểu mẫu tiếng Nhật.</p>
+<div class="links"><a class="btn ghost" href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/gensen/mokuji.htm" target="_blank" rel="noopener">Biểu mẫu bằng ngoại ngữ (Cục Thuế Quốc gia)</a></div>
+</div></details>
+
+<details class="lang" id="pt"><summary>Português</summary><div class="inner">
+<p><b>O que é o ajuste de fim de ano?</b> A empresa recalcula o imposto de renda do ano inteiro (janeiro a dezembro). Se foi descontado imposto a mais, você recebe a diferença; se foi a menos, a diferença será descontada do salário de dezembro ou janeiro.</p>
+<ul class="plain">
+<li>Entregue os formulários até o prazo informado pela empresa (referência: <b>20 de novembro</b>).</li>
+<li>Escreva seu nome em <b>letras do alfabeto exatamente como no cartão de residência (zairyu card)</b> e também a leitura em <b>katakana</b>.</li>
+<li>Se você sustenta familiares que <b>moram fora do Japão</b>, é preciso anexar documentos que comprovem o parentesco e as remessas de dinheiro (com tradução em japonês). Familiares no exterior de 30 a 69 anos só contam se forem estudantes, pessoas com deficiência, ou se você enviou ¥380.000 ou mais neste ano.</li>
+<li>Use o certificado de seguro de 2026 e informe o “valor declarado” (previsão do ano inteiro).</li>
+<li>Se entrou na empresa este ano, entregue o comprovante de retenção (源泉徴収票) do emprego anterior.</li>
+</ul>
+<p>O formulário pelo celular está em japonês. Se tiver dificuldade, fale com o setor de contabilidade da empresa ou use o formulário em papel. As traduções são apenas para referência; entregue o formulário em japonês.</p>
+<div class="links"><a class="btn ghost" href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/gensen/mokuji.htm" target="_blank" rel="noopener">Formulários em outros idiomas (Agência Nacional de Impostos)</a></div>
+</div></details>
+
+<details class="lang" id="es"><summary>Español</summary><div class="inner">
+<p><b>¿Qué es el ajuste de fin de año?</b> La empresa vuelve a calcular el impuesto sobre la renta de todo el año (enero a diciembre). Si se le retuvo de más, se le devuelve la diferencia; si se le retuvo de menos, se descuenta del salario de diciembre o enero.</p>
+<ul class="plain">
+<li>Entregue los formularios antes del plazo que indique la empresa (referencia: <b>20 de noviembre</b>).</li>
+<li>Escriba su nombre en <b>letras del alfabeto tal como aparece en su tarjeta de residencia</b> y también su lectura en <b>katakana</b>.</li>
+<li>Si mantiene a familiares que <b>viven fuera de Japón</b>, debe adjuntar documentos que prueben el parentesco y las remesas de dinero (con traducción al japonés). Los familiares en el extranjero de 30 a 69 años solo cuentan si son estudiantes, personas con discapacidad o si les envió ¥380.000 o más este año.</li>
+<li>Use el certificado de seguro de 2026 y escriba el “monto declarado” (estimación del año completo).</li>
+<li>Si entró a la empresa este año, entregue el comprobante de retención (源泉徴収票) de su empleo anterior.</li>
+</ul>
+<p>El formulario para celular está en japonés. Si le resulta difícil, consulte al encargado de contabilidad o use el formulario en papel. Las traducciones son solo de referencia; entregue el formulario en japonés.</p>
+<div class="links"><a class="btn ghost" href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/gensen/mokuji.htm" target="_blank" rel="noopener">Formularios en otros idiomas (Agencia Nacional de Impuestos)</a></div>
+</div></details>
+
+<details class="lang" id="fil"><summary>Filipino</summary><div class="inner">
+<p><b>Ano ang year-end adjustment?</b> Kinukuwentang muli ng kumpanya ang income tax mo para sa buong taon (Enero hanggang Disyembre). Kung sobra ang naikaltas, ibabalik ito sa iyo; kung kulang, ibabawas ang kakulangan sa sahod ng Disyembre o Enero.</p>
+<ul class="plain">
+<li>Ipasa ang mga form bago ang deadline ng kumpanya (gabay: <b>Nobyembre 20</b>).</li>
+<li>Isulat ang pangalan sa <b>alpabeto ayon sa residence card</b>, at isulat din ang basa nito sa <b>katakana</b>.</li>
+<li>Kung sinusuportahan mo ang pamilyang <b>nakatira sa labas ng Japan</b>, kailangang maglakip ng dokumentong nagpapatunay ng relasyon at ng padala ng pera (may salin sa Japanese). Ang mga kapamilyang nasa ibang bansa na 30 hanggang 69 taong gulang ay kasama lamang kung estudyante, may kapansanan, o pinadalhan mo ng ¥380,000 o higit pa ngayong taon.</li>
+<li>Gamitin ang insurance certificate ng 2026 at isulat ang “declared amount” (inaasahang halaga sa buong taon).</li>
+<li>Kung pumasok ka sa kumpanya ngayong taon, ipasa ang withholding slip (源泉徴収票) mula sa dati mong employer.</li>
+</ul>
+<p>Nasa Japanese ang smartphone form. Kung mahirap, magtanong sa accounting ng kumpanya o gamitin ang papel na form. Para sa sanggunian lamang ang mga salin; ipasa ang Japanese na form.</p>
+<div class="links"><a class="btn ghost" href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/gensen/mokuji.htm" target="_blank" rel="noopener">Mga form sa ibang wika (National Tax Agency)</a></div>
+</div></details>
+
+<details class="lang" id="ne"><summary>नेपाली</summary><div class="inner">
+<p><b>वर्षान्त समायोजन (Year-end adjustment) के हो?</b> कम्पनीले तपाईंको पूरा वर्ष (जनवरीदेखि डिसेम्बरसम्म) को आयकर फेरि हिसाब गर्छ। धेरै कर काटिएको भए फिर्ता पाउनुहुन्छ, कम काटिएको भए डिसेम्बर वा जनवरीको तलबबाट काटिन्छ।</p>
+<ul class="plain">
+<li>कम्पनीले दिएको म्यादभित्र फारम बुझाउनुहोस् (सन्दर्भ: <b>नोभेम्बर २०</b>)।</li>
+<li>नाम <b>रेसिडेन्स कार्डमा जस्तै अंग्रेजी अक्षरमा</b> लेख्नुहोस्, साथै <b>काताकाना</b>मा पनि लेख्नुहोस्।</li>
+<li><b>जापान बाहिर बस्ने</b> परिवारलाई पाल्नुहुन्छ भने नाता प्रमाणित गर्ने कागजात र पैसा पठाएको प्रमाण (जापानी अनुवादसहित) चाहिन्छ। विदेशमा बस्ने ३० देखि ६९ वर्षका परिवार विद्यार्थी, अपाङ्गता भएको, वा यस वर्ष ¥३८०,००० भन्दा बढी पठाएको अवस्थामा मात्र गनिन्छ।</li>
+<li>यस वर्ष कम्पनीमा प्रवेश गर्नुभएको हो भने पहिलेको कम्पनीको 源泉徴収票 बुझाउनुहोस्।</li>
+</ul>
+<p>मोबाइल फारम जापानी भाषामा छ। गाह्रो भएमा कम्पनीको लेखा शाखासँग सोध्नुहोस् वा कागजी फारम प्रयोग गर्नुहोस्।</p>
+</div></details>
+
+  </div>
+</section>
+
+<footer>【MEJIRO会計事務所】｜令和8年分 年末調整</footer>
+</div>
+</body></html>

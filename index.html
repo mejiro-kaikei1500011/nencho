@@ -86,6 +86,15 @@ details.opt>summary{cursor:pointer;font-weight:700;font-family:var(--display)}
 details.opt[open]>summary{margin-bottom:10px}
 details.opt>div{display:flex;flex-direction:column;gap:12px}
 </style>
+<style>
+.qa{display:inline-grid;place-items:center;width:22px;height:22px;margin-left:6px;border-radius:50%;border:1px solid var(--accent);background:var(--paper);color:var(--accent);font-size:.78rem;font-weight:700;padding:0;line-height:1;cursor:pointer;vertical-align:1px}
+.qa[aria-expanded=true]{background:var(--accent);color:var(--accent-ink)}
+.help{background:var(--accent-soft);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:.84rem;line-height:1.65;font-weight:400}
+.help b{color:var(--accent)}
+details.faq{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--paper)}
+details.faq>summary{cursor:pointer;font-weight:700}
+details.faq p{margin:6px 0 0;font-size:.88rem}
+</style>
 <div class="wrap">
 <header>
   <div class="eyebrow">令和8年分 年末調整</div>
@@ -93,7 +102,7 @@ details.opt>div{display:flex;flex-direction:column;gap:12px}
   <p class="lead">扶養控除等申告書・基礎控除申告書（配偶者控除等・特定親族・所得金額調整控除）・保険料控除申告書・住宅ローン控除の内容を、この画面でまとめて入力します。最後に表示される「回答」をコピーして、会社の経理担当者にメールかLINEで送れば提出完了です。</p>
   <p class="lead" id="clientLine" hidden>提出先：<span class="company" id="clientName"></span></p>
   <div class="mynum">マイナンバー（個人番号）はこの画面では入力しません。控除証明書（保険・年金・住宅ローンなど）は、回答と一緒に写真で送り、原本は会社の指示に従って経理に提出してください。</div>
-  <div class="row"><button type="button" class="ghost" id="loadSample">記入例を表示する</button><button type="button" class="ghost" id="clearAll">入力を消す</button></div>
+  <div class="row"><a href="download.html" class="ghost" style="text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:9px 14px;color:var(--ink)">資料・記入例</a><button type="button" class="ghost" id="loadSample">記入例を表示する</button><button type="button" class="ghost" id="clearAll">入力を消す</button></div>
 </header>
 
 <form id="f" novalidate>
@@ -212,6 +221,21 @@ details.opt>div{display:flex;flex-direction:column;gap:12px}
       <div class="field"><label for="loanAmt">控除額（申告書で計算した額）</label><div class="yen"><input type="number" id="loanAmt" inputmode="numeric" min="0"><span>円</span></div><span class="hint">わからなければ空欄で構いません</span></div>
     </div>
   </div>
+</section>
+
+<section class="card" id="faq">
+  <h2><span class="step">？</span>よくある質問</h2>
+  <p class="note" style="margin:0">入力欄の横の「？」を押すと、その項目の説明が出ます。</p>
+  <details class="faq"><summary>途中でやめても大丈夫？</summary><p>同じスマホ・同じブラウザで開き直せば、入力した内容は残っています。最後に「回答を作る」を押して送るまでは提出になりません。</p></details>
+  <details class="faq"><summary>間違えて送ってしまいました</summary><p>正しく直してから、もう一度「回答を作る」→「回答をコピー」で送ってください。経理の側では新しい回答に置き換わります。</p></details>
+  <details class="faq"><summary>「年収」と「所得」の違いは？</summary><p>年収（給与収入）は、税金などが引かれる前の総支給額です（交通費は除く）。所得は年収から給与所得控除を引いた金額で、この画面が自動で計算します。あなたは年収（見込み）を入れるだけで大丈夫です。</p></details>
+  <details class="faq"><summary>家族の年収が分かりません</summary><p>今年1〜12月の見込みで構いません。パートやアルバイトの給与明細などから、だいたいの金額を入れてください。年末までに大きく変わりそうなときは、「会社への連絡事項」に書いてください。</p></details>
+  <details class="faq"><summary>扶養に入らない家族も入力するの？</summary><p>一緒に暮らしている家族や仕送りをしている家族は、入力して大丈夫です。対象外の人は画面に「対象外」と表示され、申告書には載りません。16歳未満の子どもは、住民税のために必ず入れてください。</p></details>
+  <details class="faq"><summary>控除証明書が見つかりません</summary><p>保険会社に再発行を依頼してください。多くの会社はWebや電話で再発行できます。届くまでは、分かる範囲で入力して送り、証明書が届いたら写真を送ってください。</p></details>
+  <details class="faq"><summary>夫婦で同じ会社に勤めています</summary><p>子どもを扶養に入れられるのは、夫婦のどちらか一方だけです。どちらで扶養に入れるか決めて、もう一方では入力しないでください。</p></details>
+  <details class="faq"><summary>副業やダブルワークをしています</summary><p>この画面は、一番収入の多い勤務先にだけ出します。ほかの勤務先の給与がある場合は、来年ご自身で確定申告が必要になることがあります。</p></details>
+  <details class="faq"><summary>医療費控除・ふるさと納税は？</summary><p>年末調整では受けられません。医療費控除や、ワンストップ特例を使わないふるさと納税は、来年2〜3月にご自身で確定申告をしてください。</p></details>
+  <details class="faq"><summary>マイナンバーはどうするの？</summary><p>この画面では入力しません。新しく入社した方や家族が増えた方は、会社の指示に従って別に提出してください。</p></details>
 </section>
 
 <section class="card">
@@ -608,6 +632,52 @@ $('#loadSample').addEventListener('click',()=>{
     quake:[{co:'△△損保',kind:'火災保険（地震）',term:'1年',holder:'佐藤 一郎',resident:'佐藤 一郎',cat:'quake',amt:15000}], si:[], small:{kIdeco:144000}, loanHas:'no', memo:''});
   $('#result').hidden=true;
 });
+
+
+// ===== ？ヘルプ =====
+const HELP=[
+ [/^フリガナ/,'カタカナで入力してください。外国籍の方は、名前の読みをカタカナで書いてください（例：グエン ヴァン アン）。'],
+ [/アルファベット表記/,'在留カードに書かれているとおりに、大文字で入力してください。'],
+ [/^世帯主の氏名/,'住民票の世帯主です。あなたが世帯主なら自分の名前を、親と同居していて親が世帯主なら親の名前を書きます。'],
+ [/世帯主から見たあなたの続柄/,'世帯主があなた自身なら「本人」。親が世帯主なら「子」、配偶者が世帯主なら「夫」または「妻」です。'],
+ [/一番多い勤務先/,'2か所以上で働いている人は、収入が一番多い会社にだけこの申告書を出せます。副業先には出さないでください。'],
+ [/当てはまるもの$/,'<b>寡婦</b>：夫と死別・離婚した後に再婚していない女性など（所得500万円以下）。<b>ひとり親</b>：未婚・死別・離婚で、生計を同じくする子がいる人（所得500万円以下）。<b>勤労学生</b>：学生で給与収入が約163万円以下の人。くわしくは会社にご確認ください。'],
+ [/^今年の給与収入/,'税金などが引かれる前の総支給額（給料＋賞与）の1〜12月の見込みです。通勤手当（交通費）は含めません。今年入社した人は、前の会社の分も含めます。'],
+ [/^給与以外の所得/,'副業（給与以外）・不動産・年金などの「所得」（収入から経費を引いた額）です。ない人は空欄で大丈夫です。'],
+ [/前の会社からも給与/,'今年、ほかの会社を辞めてこの会社に入った人はチェックしてください。前の会社の源泉徴収票が必要です。届いていない場合は、前の会社に発行を依頼してください。'],
+ [/^源泉徴収票|前の会社の源泉徴収票/,'前の会社から受け取る「給与所得の源泉徴収票」です。手元にない場合は「まだ届いていない」を選び、前の会社に発行を依頼してください。'],
+ [/配偶者（夫・妻）$/,'法律上の配偶者だけが対象です（事実婚・内縁の方は対象外）。配偶者が働いていても、まずは入力してください。控除を受けられるかは自動で判定します。'],
+ [/一緒に生活している家族$/,'同居している家族のほか、別居していても仕送りなどで生活費を出している家族（親、学生の子など）も入れてください。'],
+ [/続柄（あなたから見て）/,'あなたから見た関係です。子ども→「子」、自分の親→「父」「母」など。'],
+ [/^住んでいる所/,'別居でも、生活費を出していれば対象になります。外国に住んでいる家族は、親族関係と送金を証明する書類が必要です。'],
+ [/障害者に当てはまる場合/,'障害者手帳などを持っている場合に選びます。「特別障害者」は身体障害者手帳1・2級、精神障害者保健福祉手帳1級などです。'],
+ [/生命保険料/,'届いた「生命保険料控除証明書」を見て入力します。<b>金額は「申告額」（12月末までの見込み）</b>を入れます。「証明額」（9月末までなど途中の金額）ではありません。区分（一般・介護医療・個人年金）と新・旧は、証明書に書いてあるとおりに選んでください。'],
+ [/^地震保険料$/,'火災保険の証明書のうち、「地震保険料」と書かれた金額だけが対象です。火災保険の部分は入れません。'],
+ [/自分で払った社会保険料/,'国民年金・国民健康保険など、あなたが自分で払った分です。給料から引かれている健康保険・厚生年金は入れません。家族の国民年金をあなたが払った場合も入れられます。'],
+ [/iDeCo・小規模企業共済/,'証明書の掛金（12月末までの見込み）を入れます。給料から天引きされている場合は入れません。'],
+ [/住宅ローン控除$/,'2年目以降の人だけ年末調整で受けられます。税務署から届いた「住宅借入金等特別控除申告書」と、銀行の「年末残高証明書」を用意してください。1年目の人は確定申告が必要です。'],
+ [/^申告額/,'証明書に書かれている「申告額」（または「年間の見込み額」）です。「証明額」とは違うので注意してください。'],
+ [/新・旧の区分/,'証明書に「新」「旧」または「新制度」「旧制度」と書いてあります。そのとおりに選んでください。'],
+ [/受取人とあなたの続柄/,'受取人があなた・配偶者・親族の保険だけが対象です。例：本人、妻、子。'],
+ [/会社への連絡事項/,'分からない項目、引っ越し・結婚・出産などの変更、年末までに収入が大きく変わりそうなことなどを書いてください。'],
+];
+function addHelp(root){
+  root.querySelectorAll('label:not(.qa-done), .lbl:not(.qa-done), summary:not(.qa-done), h2:not(.qa-done)').forEach(el=>{
+    if(el.closest('.checks')||el.closest('.seg')||el.closest('details.faq')||el.closest('#faq')) return;
+    const txt=el.textContent.replace(/必須/g,'').replace(/^\s*[0-9０-９？]\s*/,'').trim();
+    let hit=HELP.find(([re])=>re.test(txt)); if(!hit) return;
+    if(el.closest('.person') && /^今年の給与収入/.test(txt)) hit=[0,'その家族の、税金などが引かれる前の給与（パート・アルバイトを含む）の1〜12月の見込みです。交通費は含めません。<b>扶養に入れるかの目安は年収136万円以下</b>（19〜22歳の子は197万円以下まで特定親族として控除あり）です。'];
+    if(el.closest('.person') && /^給与以外の所得/.test(txt)) hit=[0,'年金・事業・不動産などの「所得」です。年金だけの親の場合は、年金の額から公的年金等控除を引いた額です。分からなければ年金の額を「会社への連絡事項」に書いてください。'];
+    el.classList.add('qa-done');
+    const b=document.createElement('button'); b.type='button'; b.className='qa'; b.textContent='?'; b.setAttribute('aria-label','説明を見る'); b.setAttribute('aria-expanded','false');
+    const box=document.createElement('div'); box.className='help'; box.hidden=true; box.innerHTML=hit[1];
+    b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); box.hidden=!box.hidden; b.setAttribute('aria-expanded',String(!box.hidden)); });
+    el.appendChild(b);
+    if(el.tagName==='SUMMARY') el.parentElement.insertBefore(box, el.nextSibling); else el.insertAdjacentElement('afterend',box);
+  });
+}
+addHelp(document);
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{ if(n.nodeType===1) addHelp(n); }))).observe(document.body,{childList:true,subtree:true});
 
 // 起動
 if(clientCode){ $('#clientLine').hidden=false; $('#clientName').textContent='顧問先コード '+clientCode+' の会社'; }
