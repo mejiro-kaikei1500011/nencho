@@ -99,10 +99,9 @@ details.faq p{margin:6px 0 0;font-size:.88rem}
 <header>
   <div class="eyebrow">令和8年分 年末調整</div>
   <h1>年末調整の申告書 入力</h1>
-  <p class="lead">扶養控除等申告書・基礎控除申告書（配偶者控除等・特定親族・所得金額調整控除）・保険料控除申告書・住宅ローン控除の内容を、この画面でまとめて入力します。最後に表示される「回答」をコピーして、会社の経理担当者にメールかLINEで送れば提出完了です。</p>
+  <p class="lead">上から順に入力して、最後に出る「回答」を経理担当者にLINEかメールで送れば完了です。分からない項目は「？」を押してください。マイナンバーは入力しません。</p>
   <p class="lead" id="clientLine" hidden>提出先：<span class="company" id="clientName"></span></p>
-  <div class="mynum">マイナンバー（個人番号）はこの画面では入力しません。控除証明書（保険・年金・住宅ローンなど）は、回答と一緒に写真で送り、原本は会社の指示に従って経理に提出してください。</div>
-  <div class="row"><a href="download.html" class="ghost" style="text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:9px 14px;color:var(--ink)">資料・記入例</a><button type="button" class="ghost" id="loadSample">記入例を表示する</button><button type="button" class="ghost" id="clearAll">入力を消す</button></div>
+    <div class="row"><button type="button" class="ghost" id="loadSample">記入例を表示する</button><button type="button" class="ghost" id="clearAll">入力を消す</button></div>
 </header>
 
 <form id="f" novalidate>
@@ -221,21 +220,6 @@ details.faq p{margin:6px 0 0;font-size:.88rem}
       <div class="field"><label for="loanAmt">控除額（申告書で計算した額）</label><div class="yen"><input type="number" id="loanAmt" inputmode="numeric" min="0"><span>円</span></div><span class="hint">わからなければ空欄で構いません</span></div>
     </div>
   </div>
-</section>
-
-<section class="card" id="faq">
-  <h2><span class="step">？</span>よくある質問</h2>
-  <p class="note" style="margin:0">入力欄の横の「？」を押すと、その項目の説明が出ます。</p>
-  <details class="faq"><summary>途中でやめても大丈夫？</summary><p>同じスマホ・同じブラウザで開き直せば、入力した内容は残っています。最後に「回答を作る」を押して送るまでは提出になりません。</p></details>
-  <details class="faq"><summary>間違えて送ってしまいました</summary><p>正しく直してから、もう一度「回答を作る」→「回答をコピー」で送ってください。経理の側では新しい回答に置き換わります。</p></details>
-  <details class="faq"><summary>「年収」と「所得」の違いは？</summary><p>年収（給与収入）は、税金などが引かれる前の総支給額です（交通費は除く）。所得は年収から給与所得控除を引いた金額で、この画面が自動で計算します。あなたは年収（見込み）を入れるだけで大丈夫です。</p></details>
-  <details class="faq"><summary>家族の年収が分かりません</summary><p>今年1〜12月の見込みで構いません。パートやアルバイトの給与明細などから、だいたいの金額を入れてください。年末までに大きく変わりそうなときは、「会社への連絡事項」に書いてください。</p></details>
-  <details class="faq"><summary>扶養に入らない家族も入力するの？</summary><p>一緒に暮らしている家族や仕送りをしている家族は、入力して大丈夫です。対象外の人は画面に「対象外」と表示され、申告書には載りません。16歳未満の子どもは、住民税のために必ず入れてください。</p></details>
-  <details class="faq"><summary>控除証明書が見つかりません</summary><p>保険会社に再発行を依頼してください。多くの会社はWebや電話で再発行できます。届くまでは、分かる範囲で入力して送り、証明書が届いたら写真を送ってください。</p></details>
-  <details class="faq"><summary>夫婦で同じ会社に勤めています</summary><p>子どもを扶養に入れられるのは、夫婦のどちらか一方だけです。どちらで扶養に入れるか決めて、もう一方では入力しないでください。</p></details>
-  <details class="faq"><summary>副業やダブルワークをしています</summary><p>この画面は、一番収入の多い勤務先にだけ出します。ほかの勤務先の給与がある場合は、来年ご自身で確定申告が必要になることがあります。</p></details>
-  <details class="faq"><summary>医療費控除・ふるさと納税は？</summary><p>年末調整では受けられません。医療費控除や、ワンストップ特例を使わないふるさと納税は、来年2〜3月にご自身で確定申告をしてください。</p></details>
-  <details class="faq"><summary>マイナンバーはどうするの？</summary><p>この画面では入力しません。新しく入社した方や家族が増えた方は、会社の指示に従って別に提出してください。</p></details>
 </section>
 
 <section class="card">
