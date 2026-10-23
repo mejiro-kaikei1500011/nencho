@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow">
+<style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>扶養控除申告書 入力フォーム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* Layout: one narrow column like a paper form, sections as numbered stages of the real 申告書 flow */
+:root{
+  --bg:#f5f7f6; --paper:#ffffff; --ink:#1d2a28; --muted:#5d6b68; --line:#d5dedb;
+  --accent:#1f6f6b; --accent-ink:#ffffff; --accent-soft:#e2efed;
+  --warn:#9a5b00; --warn-soft:#fdf1dc; --bad:#b3261e; --bad-soft:#fbe9e7; --ok:#2e7d4f; --ok-soft:#e5f3ea;
+  --display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --body:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121816; --paper:#1a2220; --ink:#e4ebe9; --muted:#9fb0ac; --line:#2f3b38;
+  --accent:#5cbcb4; --accent-ink:#0d1a18; --accent-soft:#1f3532;
+  --warn:#f0b863; --warn-soft:#3a2d16; --bad:#f2938b; --bad-soft:#3d1f1c; --ok:#7fd1a0; --ok-soft:#1c3326; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121816; --paper:#1a2220; --ink:#e4ebe9; --muted:#9fb0ac; --line:#2f3b38;
+  --accent:#5cbcb4; --accent-ink:#0d1a18; --accent-soft:#1f3532;
+  --warn:#f0b863; --warn-soft:#3a2d16; --bad:#f2938b; --bad-soft:#3d1f1c; --ok:#7fd1a0; --ok-soft:#1c3326; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.35}
+h1{font-size:1.45rem}
+h2{font-size:1.12rem;display:flex;align-items:center;gap:10px}
+h3{font-size:1rem}
+.step{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:.85rem;flex:none}
+header{display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.lead{color:var(--muted);margin:0}
+.company{font-weight:700}
+section.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px 16px;display:flex;flex-direction:column;gap:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+label,.lbl{font-size:.86rem;font-weight:500}
+.req::after{content:"必須";margin-left:6px;font-size:.7rem;color:var(--bad);border:1px solid var(--bad);border-radius:4px;padding:0 4px;font-weight:500}
+.hint{font-size:.78rem;color:var(--muted)}
+input[type=text],input[type=date],input[type=number],select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:1px}
+.yen{position:relative}.yen input{padding-right:2.4em}.yen span{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem}
+.checks{display:flex;flex-wrap:wrap;gap:8px 16px}
+.checks label{display:flex;align-items:center;gap:6px;font-weight:400}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg label{border:1px solid var(--line);border-radius:999px;padding:6px 14px;display:flex;gap:6px;align-items:center;font-weight:400;cursor:pointer}
+.seg input{accent-color:var(--accent)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:9px 14px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.ghost{background:transparent}
+button.danger{color:var(--bad);border-color:transparent;background:transparent;padding:6px 8px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.person{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.person-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.verdict{border-radius:8px;padding:8px 12px;font-size:.88rem;display:flex;flex-direction:column;gap:2px}
+.verdict b{font-family:var(--display)}
+.v-ok{background:var(--ok-soft);color:var(--ok)}
+.v-info{background:var(--accent-soft);color:var(--accent)}
+.v-warn{background:var(--warn-soft);color:var(--warn)}
+.v-none{background:var(--bg);color:var(--muted);border:1px dashed var(--line)}
+.calc{font-variant-numeric:tabular-nums;font-size:.8rem;opacity:.9}
+.errors{background:var(--bad-soft);color:var(--bad);border-radius:8px;padding:10px 14px}
+.errors ul{margin:4px 0 0;padding-left:1.2em}
+.result{display:flex;flex-direction:column;gap:12px}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.75rem;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:140px;overflow:auto;user-select:all}
+pre.summary{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all;font-family:var(--body);font-size:.88rem;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;margin:0;user-select:all}
+.note{font-size:.8rem;color:var(--muted)}
+.toast{color:var(--ok);font-weight:700;font-size:.9rem}
+.mynum{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:10px 14px;font-size:.86rem}
+@media (prefers-reduced-motion:no-preference){.person{animation:in .2s ease}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+</head><body>
+
+<style>
+.sub{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:12px}
+.item{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.item-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-family:var(--display)}
+.tally{display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-size:.88rem;background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-variant-numeric:tabular-nums}
+.tally .t{color:var(--accent);font-weight:700;text-align:right}
+details.opt{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+details.opt>summary{cursor:pointer;font-weight:700;font-family:var(--display)}
+details.opt[open]>summary{margin-bottom:10px}
+details.opt>div{display:flex;flex-direction:column;gap:12px}
+</style>
+<style>
+.qa{display:inline-grid;place-items:center;width:22px;height:22px;margin-left:6px;border-radius:50%;border:1px solid var(--accent);background:var(--paper);color:var(--accent);font-size:.78rem;font-weight:700;padding:0;line-height:1;cursor:pointer;vertical-align:1px}
+.qa[aria-expanded=true]{background:var(--accent);color:var(--accent-ink)}
+.help{background:var(--accent-soft);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:.84rem;line-height:1.65;font-weight:400}
+.help b{color:var(--accent)}
+details.faq{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--paper)}
+details.faq>summary{cursor:pointer;font-weight:700}
+details.faq p{margin:6px 0 0;font-size:.88rem}
+</style>
+<div class="wrap">
+<header>
+  <div class="eyebrow">令和8年分 年末調整</div>
+  <h1>年末調整の申告書 入力</h1>
+  <p class="lead">上から順に入力して、最後に出る「回答」を経理担当者にLINEかメールで送れば完了です。分からない項目は「？」を押してください。マイナンバーは入力しません。</p>
+  <p class="lead" id="clientLine" hidden>提出先：<span class="company" id="clientName"></span></p>
+    <div class="row"><button type="button" class="ghost" id="loadSample">記入例を表示する</button><button type="button" class="ghost" id="clearAll">入力を消す</button></div>
+</header>
+
+<form id="f" novalidate>
+<div class="wrap" style="gap:18px">
+
+<section class="card">
+  <h2><span class="step">1</span>あなたのこと</h2>
+  <div class="grid">
+    <div class="field"><label class="req" for="company">勤務先の会社名</label><input type="text" id="company" autocomplete="organization" placeholder="例：株式会社〇〇商事"></div>
+    <div class="field"><label class="req" for="birth">生年月日</label><input type="date" id="birth" max="2026-12-31"></div>
+    <div class="field"><label class="req" for="name">氏名</label><input type="text" id="name" autocomplete="name" placeholder="例：佐藤 一郎"></div>
+    <div class="field"><label class="req" for="kana">フリガナ（カタカナ）</label><input type="text" id="kana" placeholder="例：サトウ イチロウ"></div>
+  </div>
+  <div class="checks"><label><input type="checkbox" id="foreign"> 外国籍です</label></div>
+  <div class="field" id="romanBox" hidden><label class="req" for="roman">氏名のアルファベット表記（在留カードどおり）</label><input type="text" id="roman" placeholder="例：NGUYEN VAN AN"></div>
+  <div class="grid">
+    <div class="field"><label class="req" for="zip">郵便番号</label><input type="text" id="zip" inputmode="numeric" placeholder="例：150-0011"></div>
+    <div class="field"><label class="req" for="addr">住所</label><input type="text" id="addr" autocomplete="street-address" placeholder="例：東京都渋谷区東1-2-3"></div>
+    <div class="field"><label class="req" for="head">世帯主の氏名</label><input type="text" id="head" placeholder="自分が世帯主なら自分の名前"></div>
+    <div class="field"><label class="req" for="headRel">世帯主から見たあなたの続柄</label><input type="text" id="headRel" placeholder="例：本人／子／妻"></div>
+  </div>
+  <div class="field"><span class="lbl req">この会社は、今年あなたの収入が一番多い勤務先ですか</span>
+    <div class="seg"><label><input type="radio" name="main" value="yes"> はい</label><label><input type="radio" name="main" value="no"> いいえ（ほかの会社がメイン）</label></div>
+    <div class="hint" id="mainNote" hidden>ほかの会社がメインの場合、この会社では年末調整ができません。会社の経理担当者にその旨を伝えてください。</div>
+  </div>
+  <div class="field"><span class="lbl">あなた自身に当てはまるもの</span>
+    <div class="checks">
+      <label><input type="checkbox" id="sDis"> 障害者</label>
+      <label><input type="checkbox" id="sSpDis"> 特別障害者</label>
+      <label><input type="checkbox" id="sWidow"> 寡婦</label>
+      <label><input type="checkbox" id="sSingle"> ひとり親</label>
+      <label><input type="checkbox" id="sStudent"> 勤労学生</label>
+    </div>
+  </div>
+  <div class="field" id="sDetailBox" hidden><label for="sDetail">障害の内容や学校名など</label><input type="text" id="sDetail" placeholder="例：身体障害者手帳2級／〇〇大学"></div>
+</section>
+
+<section class="card">
+  <h2><span class="step">2</span>あなたの今年の収入</h2>
+  <p class="note" style="margin:0">基礎控除と配偶者控除の計算に使います。1〜12月の見込みで構いません。</p>
+  <div class="grid">
+    <div class="field"><label class="req" for="selfWage">今年の給与収入（見込み）</label><div class="yen"><input type="number" id="selfWage" inputmode="numeric" min="0"><span>円</span></div><span class="hint">この会社の給料・賞与の合計（今年入社なら前の会社の分も含む）。交通費は除く</span></div>
+    <div class="field"><label for="selfOther">給与以外の所得（見込み）</label><div class="yen"><input type="number" id="selfOther" inputmode="numeric" min="0"><span>円</span></div><span class="hint">副業・不動産・年金などの「所得」（収入から経費を引いた額）。なければ空欄</span></div>
+  </div>
+  <div class="checks"><label><input type="checkbox" id="prevJob"> 今年この会社に入社し、前の会社からも給与をもらった</label></div>
+  <div class="sub" id="prevBox" hidden>
+    <p class="note" style="margin:0">前の会社の源泉徴収票を見て入力し、源泉徴収票は経理に提出してください。</p>
+    <div class="grid">
+      <div class="field"><label for="prevName">前の会社の名称</label><input type="text" id="prevName"></div>
+      <div class="field"><label for="prevQuit">退職日</label><input type="date" id="prevQuit" max="2026-12-31"></div>
+      <div class="field"><label for="prevPay">支払金額</label><div class="yen"><input type="number" id="prevPay" inputmode="numeric" min="0"><span>円</span></div></div>
+      <div class="field"><label for="prevSI">社会保険料等の金額</label><div class="yen"><input type="number" id="prevSI" inputmode="numeric" min="0"><span>円</span></div></div>
+      <div class="field"><label for="prevTax">源泉徴収税額</label><div class="yen"><input type="number" id="prevTax" inputmode="numeric" min="0"><span>円</span></div></div>
+      <div class="field"><label for="joinDate">この会社の入社日</label><input type="date" id="joinDate" max="2026-12-31"></div>
+      <div class="field"><label for="prevSlip">前の会社の源泉徴収票</label><select id="prevSlip"><option value="">選んでください</option><option value="have">手元にある</option><option value="wait">まだ届いていない（前の会社に依頼中）</option></select></div>
+    </div>
+    <div class="field"><label for="prevMore">前の会社が2社以上ある場合（会社名・支払金額・社会保険料・源泉徴収税額）</label><textarea id="prevMore" rows="2" placeholder="例：△△株式会社 支払金額 600,000円 社会保険料 90,000円 源泉徴収税額 12,000円"></textarea></div>
+    <div class="hint">退職から入社までの間に自分で払った国民年金・国民健康保険は、「5 保険料など」の社会保険料に入れてください。源泉徴収票が届かない場合は、前の会社に発行を依頼してください（年末調整に必要です）。</div>
+  </div>
+  <div class="verdict v-none" id="selfVerdict">給与収入を入れると、基礎控除の額を表示します。</div>
+</section>
+
+<section class="card">
+  <h2><span class="step">3</span>配偶者（夫・妻）</h2>
+  <div class="seg"><label><input type="radio" name="spHas" value="no"> いない</label><label><input type="radio" name="spHas" value="yes"> いる</label></div>
+  <div id="spBox" hidden></div>
+</section>
+
+<section class="card">
+  <h2><span class="step">4</span>一緒に生活している家族</h2>
+  <p class="note" style="margin:0">子ども、親など、あなたが生活費を出している家族を全員入れてください。16歳未満の子どもも入れます（住民税で使います）。扶養に入るかどうかは自動で判定します。</p>
+  <div id="famList" class="wrap" style="gap:12px"></div>
+  <button type="button" id="addFam">＋ 家族を追加する</button>
+</section>
+
+<section class="card">
+  <h2><span class="step">5</span>保険料など</h2>
+  <p class="note" style="margin:0">届いた控除証明書を見ながら、<b>「申告額」（12月末までの見込み）</b>を入力してください。「証明額」（9月末まで等の途中の金額）ではありません。去年の証明書は使えません。</p>
+  <details class="opt" id="optLife"><summary>生命保険料（一般・介護医療・個人年金）</summary><div>
+    <div id="lifeList" class="wrap" style="gap:10px"></div>
+    <button type="button" id="addLife">＋ 生命保険を追加する</button>
+    <div class="hint">受取人が、あなた・配偶者・親族のいずれかの保険だけが対象です。</div>
+  </div></details>
+  <details class="opt" id="optQuake"><summary>地震保険料</summary><div>
+    <div id="quakeList" class="wrap" style="gap:10px"></div>
+    <button type="button" id="addQuake">＋ 地震保険を追加する</button>
+    <div class="hint">火災保険の部分は対象外です。証明書の「地震保険料」の金額を入れてください。</div>
+  </div></details>
+  <details class="opt" id="optSI"><summary>自分で払った社会保険料（国民年金・国民健康保険など）</summary><div>
+    <div id="siList" class="wrap" style="gap:10px"></div>
+    <button type="button" id="addSI">＋ 社会保険料を追加する</button>
+    <div class="hint">給料から引かれている健康保険・厚生年金は書きません。家族の国民年金をあなたが払った場合も入れられます。</div>
+  </div></details>
+  <details class="opt" id="optSmall"><summary>iDeCo・小規模企業共済など</summary><div>
+    <div class="grid">
+      <div class="field"><label for="kSmall">小規模企業共済（中小機構）の掛金</label><div class="yen"><input type="number" id="kSmall" inputmode="numeric" min="0"><span>円</span></div></div>
+      <div class="field"><label for="kCorpDC">企業型確定拠出年金の自分の掛金</label><div class="yen"><input type="number" id="kCorpDC" inputmode="numeric" min="0"><span>円</span></div></div>
+      <div class="field"><label for="kIdeco">個人型確定拠出年金（iDeCo）の掛金</label><div class="yen"><input type="number" id="kIdeco" inputmode="numeric" min="0"><span>円</span></div></div>
+      <div class="field"><label for="kShogai">心身障害者扶養共済の掛金</label><div class="yen"><input type="number" id="kShogai" inputmode="numeric" min="0"><span>円</span></div></div>
+    </div>
+    <div class="hint">給料から天引きされている掛金は書きません。</div>
+  </div></details>
+  <div class="tally" id="insTally"></div>
+</section>
+
+<section class="card">
+  <h2><span class="step">6</span>住宅ローン控除</h2>
+  <div class="seg"><label><input type="radio" name="loanHas" value="no"> 受けない</label><label><input type="radio" name="loanHas" value="first"> 今年が1年目</label><label><input type="radio" name="loanHas" value="yes"> 2年目以降</label></div>
+  <div class="hint" id="loanFirst" hidden>1年目は年末調整では受けられません。来年2〜3月に、ご自身で確定申告をしてください。</div>
+  <div class="sub" id="loanBox" hidden>
+    <p class="note" style="margin:0">税務署から届いた「住宅借入金等特別控除申告書」と、金融機関の「年末残高証明書」を見て入力し、2枚とも経理に提出してください。</p>
+    <div class="grid">
+      <div class="field"><label for="loanStart">居住開始年月日</label><input type="date" id="loanStart"></div>
+      <div class="field"><label for="loanBal">年末残高（証明書の合計）</label><div class="yen"><input type="number" id="loanBal" inputmode="numeric" min="0"><span>円</span></div></div>
+      <div class="field"><label for="loanShare">あなたの持分（ペアローン等）</label><input type="text" id="loanShare" placeholder="例：単独／2分の1"></div>
+      <div class="field"><label for="loanAmt">控除額（申告書で計算した額）</label><div class="yen"><input type="number" id="loanAmt" inputmode="numeric" min="0"><span>円</span></div><span class="hint">わからなければ空欄で構いません</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2><span class="step">7</span>確認して送る</h2>
+  <div class="field"><label for="memo">会社への連絡事項（任意）</label><textarea id="memo" rows="2" placeholder="例：11月に引っ越しました"></textarea></div>
+  <div id="errBox" class="errors" hidden></div>
+  <button type="submit" class="primary">回答を作る</button>
+  <div id="result" class="result" hidden>
+    <p style="margin:0">下の内容を確認し、<b>「回答をコピー」</b>を押して、会社の経理担当者にメールかLINEで貼り付けて送ってください。<b>証明書がある人は、文面の最後に出る書類を1枚ずつスマホで撮影し、同じメール・LINEで写真も送ってください。</b>写真は書類全体が入り、金額と「令和8年分」の文字が読めるように撮ってください。</p>
+    <pre class="summary" id="summary"></pre>
+    <div class="row"><button type="button" class="primary" id="copyBtn">回答をコピー</button><span class="toast" id="copied" hidden>コピーしました</span></div>
+    <div class="note">コピーできない場合は、上の枠を長押しして全部選択し、コピーしてください。最後にある英数字の「回答コード」は会社の処理に使うので、消さずに送ってください。</div>
+  </div>
+</section>
+
+</div>
+</form>
+<section class="card" id="faq">
+  <details class="faq-all"><summary style="cursor:pointer;font-family:var(--display);font-weight:700;font-size:1.05rem">？ よくある質問（タップで開く）</summary>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+  <details class="faq"><summary>途中でやめても大丈夫？</summary><p>同じスマホ・同じブラウザで開き直せば、入力内容は残っています。「回答」を送るまでは提出になりません。</p></details>
+  <details class="faq"><summary>間違えて送ってしまった</summary><p>直してから、もう一度「回答を作る」→「回答をコピー」で送ってください。新しい回答に置き換わります。</p></details>
+  <details class="faq"><summary>「年収」と「所得」の違いは？</summary><p>年収は、税金などが引かれる前の総支給額です（交通費は除く）。所得はこの画面が自動で計算するので、年収の見込みを入れるだけで大丈夫です。</p></details>
+  <details class="faq"><summary>家族の年収が分からない</summary><p>今年1〜12月の見込みで構いません。年末までに大きく変わりそうなときは「会社への連絡事項」に書いてください。</p></details>
+  <details class="faq"><summary>扶養に入らない家族も入力する？</summary><p>入力して大丈夫です。対象外の人は「対象外」と表示されます。16歳未満の子どもは住民税のために必ず入れてください。</p></details>
+  <details class="faq"><summary>控除証明書が見つからない</summary><p>保険会社に再発行を依頼してください。届くまでは分かる範囲で入力して送り、届いたら写真を送ってください。</p></details>
+  <details class="faq"><summary>夫婦で同じ会社に勤めている</summary><p>子どもを扶養に入れられるのは、夫婦のどちらか一方だけです。もう一方では入力しないでください。</p></details>
+  <details class="faq"><summary>副業・ダブルワークをしている</summary><p>この画面は、一番収入の多い勤務先にだけ出します。ほかの給与がある場合は、確定申告が必要になることがあります。</p></details>
+  <details class="faq"><summary>医療費控除・ふるさと納税は？</summary><p>年末調整では受けられません。来年2〜3月にご自身で確定申告をしてください（ふるさと納税のワンストップ特例を使う人を除く）。</p></details>
+  <details class="faq"><summary>マイナンバーは？</summary><p>この画面では入力しません。新しく入社した方や家族が増えた方は、会社の指示に従ってください。</p></details>
+  </div></details>
+</section>
+
+<p class="note" style="text-align:center">令和8年分の制度（扶養の年収目安136万円、特定親族は197万円以下、基礎控除104万円など）で判定しています。金額は目安で、最終的には会社・税理士が確認します。</p>
+</div>
+
+<template id="tplPerson">
+  <div class="person">
+    <div class="person-head"><h3 data-k="title"></h3><button type="button" class="danger" data-k="del">削除</button></div>
+    <div class="grid">
+      <div class="field" data-only="fam"><label class="req">続柄（あなたから見て）</label>
+        <select data-f="rel"><option value="">選んでください</option><option>子</option><option>父</option><option>母</option><option>祖父</option><option>祖母</option><option>兄弟姉妹</option><option>孫</option><option>その他の親族</option></select></div>
+      <div class="field"><label class="req">生年月日</label><input type="date" data-f="birth" max="2026-12-31"></div>
+      <div class="field"><label class="req">氏名</label><input type="text" data-f="name"></div>
+      <div class="field"><label class="req">フリガナ（カタカナ）</label><input type="text" data-f="kana"></div>
+      <div class="field"><label>今年の給与収入（見込み）</label><div class="yen"><input type="number" inputmode="numeric" min="0" step="1" data-f="wage" placeholder="アルバイト・パートを含む"><span>円</span></div><span class="hint">1〜12月の合計。交通費は除く。なければ空欄</span></div>
+      <div class="field"><label>給与以外の所得（見込み）</label><div class="yen"><input type="number" inputmode="numeric" min="0" step="1" data-f="other"><span>円</span></div><span class="hint">年金・事業などの「所得」。なければ空欄</span></div>
+    </div>
+    <div class="field"><span class="lbl">住んでいる所</span>
+      <div class="seg"><label><input type="radio" data-f="live" value="same"> 一緒に住んでいる</label><label><input type="radio" data-f="live" value="apart"> 別に住んでいる（国内）</label><label><input type="radio" data-f="live" value="abroad"> 外国に住んでいる</label></div></div>
+    <div class="field" data-k="addrBox" hidden><label>その人の住所</label><input type="text" data-f="addr"></div>
+    <div class="field" data-k="abroadBox" hidden><span class="lbl">外国に住む家族に当てはまるもの（30〜69歳の場合に必要）</span>
+      <div class="checks"><label><input type="checkbox" data-f="aStudy"> 留学中</label><label><input type="checkbox" data-f="aDis"> 障害者</label><label><input type="checkbox" data-f="a38"> 今年38万円以上送金した</label></div>
+      <span class="hint">外国に住む家族は、親族関係と送金を証明する書類が必要です。</span></div>
+    <div class="field"><span class="lbl">障害者に当てはまる場合</span>
+      <select data-f="dis"><option value="">当てはまらない</option><option value="一般">一般の障害者</option><option value="特別">特別障害者</option><option value="同居特別">同居特別障害者</option></select></div>
+    <div class="verdict v-none" data-k="verdict">生年月日と収入を入れると、どの欄に当たるか表示します。</div>
+  </div>
+</template>
+
+<template id="tplLife">
+  <div class="item">
+    <div class="item-head"><span data-k="title">生命保険</span><button type="button" class="danger" data-k="del">削除</button></div>
+    <div class="grid">
+      <div class="field"><label class="req">保険会社の名称</label><input type="text" data-f="co" placeholder="例：〇〇生命"></div>
+      <div class="field"><label>保険の種類</label><input type="text" data-f="kind" placeholder="例：終身保険／医療保険"></div>
+      <div class="field"><label class="req">区分（証明書に記載）</label><select data-f="cat"><option value="">選んでください</option><option value="general">一般の生命保険</option><option value="care">介護医療保険</option><option value="pension">個人年金保険</option></select></div>
+      <div class="field"><label class="req">新・旧の区分</label><select data-f="age"><option value="">選んでください</option><option value="new">新（新制度）</option><option value="old">旧（旧制度）</option></select></div>
+      <div class="field"><label>保険期間又は年金支払期間</label><input type="text" data-f="term" placeholder="例：終身／10年"></div>
+      <div class="field" data-k="startBox" hidden><label>年金の支払開始日</label><input type="date" data-f="start"></div>
+      <div class="field"><label class="req">契約者の氏名</label><input type="text" data-f="holder"></div>
+      <div class="field"><label class="req">保険金等の受取人の氏名</label><input type="text" data-f="payee"></div>
+      <div class="field"><label class="req">受取人とあなたの続柄</label><input type="text" data-f="payeeRel" placeholder="例：本人／妻／子"></div>
+      <div class="field"><label class="req">申告額（12月末までの見込み）</label><div class="yen"><input type="number" inputmode="numeric" min="0" data-f="amt"><span>円</span></div></div>
+    </div>
+  </div>
+</template>
+<template id="tplQuake">
+  <div class="item">
+    <div class="item-head"><span>地震保険</span><button type="button" class="danger" data-k="del">削除</button></div>
+    <div class="grid">
+      <div class="field"><label class="req">保険会社の名称</label><input type="text" data-f="co"></div>
+      <div class="field"><label>保険の種類（目的）</label><input type="text" data-f="kind" placeholder="例：火災保険（地震）"></div>
+      <div class="field"><label>保険期間</label><input type="text" data-f="term" placeholder="例：5年"></div>
+      <div class="field"><label class="req">契約者の氏名</label><input type="text" data-f="holder"></div>
+      <div class="field"><label>保険の対象の家屋に住んでいる人</label><input type="text" data-f="resident"></div>
+      <div class="field"><label class="req">区分</label><select data-f="cat"><option value="">選んでください</option><option value="quake">地震保険料</option><option value="oldlong">旧長期損害保険料</option></select></div>
+      <div class="field"><label class="req">申告額（12月末までの見込み）</label><div class="yen"><input type="number" inputmode="numeric" min="0" data-f="amt"><span>円</span></div></div>
+    </div>
+  </div>
+</template>
+<template id="tplSI">
+  <div class="item">
+    <div class="item-head"><span>社会保険料</span><button type="button" class="danger" data-k="del">削除</button></div>
+    <div class="grid">
+      <div class="field"><label class="req">種類</label><select data-f="kind"><option value="">選んでください</option><option>国民年金</option><option>国民年金基金</option><option>国民健康保険</option><option>後期高齢者医療保険</option><option>介護保険</option><option>任意継続の健康保険</option><option>その他</option></select></div>
+      <div class="field"><label>支払先の名称</label><input type="text" data-f="payto" placeholder="例：日本年金機構／〇〇区"></div>
+      <div class="field"><label class="req">負担することになっている人</label><input type="text" data-f="who" placeholder="例：本人／妻 佐藤花子"></div>
+      <div class="field"><label class="req">今年払った金額（見込み）</label><div class="yen"><input type="number" inputmode="numeric" min="0" data-f="amt"><span>円</span></div></div>
+    </div>
+  </div>
+</template>
+
+<script>
+(function(){
+const YEAR_END = new Date(2026,11,31);
+const $ = s => document.querySelector(s);
+const token = (location.hash||'').replace('#','');
+const clientCode = /^k[0-9A-Za-z]{1,12}$/.test(token) ? token.slice(1) : '';
+const num = v => Math.max(0, Math.floor(+v||0));
+const yen = n => (n||0).toLocaleString('ja-JP')+'円';
+
+// ===== 令和8年分の計算 =====
+function wageIncome(w){ w=num(w);
+  if (w <= 740000) return 0;
+  if (w < 2200000) return w - 740000;
+  if (w < 3600000) return Math.floor(w*0.7) - 80000;
+  if (w < 6600000) return Math.floor(w*0.8) - 440000;
+  if (w < 8500000) return Math.floor(w*0.9) - 1100000;
+  return w - 1950000; }
+function ageAtYearEnd(b){ if(!b) return null; const d=new Date(b+'T00:00:00'); if(isNaN(d)) return null;
+  let a=YEAR_END.getFullYear()-d.getFullYear(); if (YEAR_END < new Date(YEAR_END.getFullYear(), d.getMonth(), d.getDate())) a--; return a; }
+function basic(total){ if(total<=4890000) return 1040000; if(total<=6550000) return 670000; if(total<=23500000) return 620000; if(total<=24000000) return 480000; if(total<=24500000) return 320000; if(total<=25000000) return 160000; return 0; }
+function kubun1(total){ return total<=9000000?'A':total<=9500000?'B':total<=10000000?'C':''; }
+// 配偶者控除・配偶者特別控除の表（区分Ⅰ × 区分Ⅱ）
+const SPTBL={A:[480000,380000,380000,360000,310000,260000,210000,160000,110000,60000,30000],B:[320000,260000,260000,240000,210000,180000,140000,110000,80000,40000,20000],C:[160000,130000,130000,120000,110000,90000,70000,60000,40000,20000,10000]};
+function spCol(inc,age){ if(inc<=620000) return age>=70?0:1; if(inc<=950000) return 2; const b=[1000000,1050000,1100000,1150000,1200000,1250000,1300000,1330000]; for(let i=0;i<b.length;i++) if(inc<=b[i]) return 3+i; return -1; }
+const SP_K2=['①','②','③','④','④','④','④','④','④','④','④'];
+function tokuteiAmt(inc){ const t=[[850000,630000],[900000,610000],[950000,510000],[1000000,410000],[1050000,310000],[1100000,210000],[1150000,110000],[1200000,60000],[1230000,30000]]; if(inc<=620000) return 0; for(const [u,a] of t) if(inc<=u) return a; return 0; }
+// 生命保険料控除の計算式
+const fI = x=> x<=0?0: x<=20000?x : x<=40000?Math.ceil(x/2+10000) : x<=80000?Math.ceil(x/4+20000) : 40000;
+const fII= x=> x<=0?0: x<=30000?x : x<=60000?Math.ceil(x/2+15000) : x<=120000?Math.ceil(x/4+30000) : 60000;
+const fIII=x=> x<=0?0: x<=25000?x : x<=50000?Math.ceil(x/2+12500) : x<=100000?Math.ceil(x/4+25000) : 50000;
+
+function selfData(){ const w=num($('#selfWage').value), o=num($('#selfOther').value); const total=wageIncome(w)+o; return {wage:w,other:o,total,basic:basic(total),k1:kubun1(total)}; }
+function u23Dependents(){ return [...document.querySelectorAll('#famList .person')].map(readPerson).filter(p=>{ const a=ageAtYearEnd(p.birth); const inc=wageIncome(p.wage)+num(p.other); return a!==null && a<23 && inc<=620000; }); }
+
+function judgeSpouse(p, sd){
+  const age=ageAtYearEnd(p.birth); if(age===null) return null;
+  const inc=wageIncome(p.wage)+num(p.other);
+  const r={age,inc,warn:[],amt:0,k2:'',calc:`所得の見積額 ${yen(inc)}（給与収入${yen(num(p.wage))}→給与所得${yen(wageIncome(p.wage))}${num(p.other)?`＋その他${yen(num(p.other))}`:''}）`};
+  if(p.live==='abroad') r.warn.push('外国に住む配偶者は、親族関係と送金の証明書類が必要です');
+  if(!sd.wage){ r.cls='none'; r.title='「2 あなたの今年の収入」を入れると判定します'; r.desc=''; r.code=''; return r; }
+  if(!sd.k1){ r.cls='none'; r.title='対象外'; r.desc='あなたの所得が1,000万円（給与収入1,195万円）を超えるため、配偶者控除・配偶者特別控除は受けられません。'; r.code='SP_NONE'; return r; }
+  const col=spCol(inc,age);
+  if(col<0){ r.cls='none'; r.title='対象外（控除なし）'; r.desc='配偶者の所得が133万円（年収207万円）を超えています。'; r.code='SP_NONE'; return r; }
+  r.amt=SPTBL[sd.k1][col]; r.k2=SP_K2[col];
+  const aOK = sd.total<=9000000 && inc<=950000;
+  const kind = col<=1?'配偶者控除':'配偶者特別控除';
+  r.cls=aOK?'ok':'info';
+  r.title=(aOK?'A欄（源泉控除対象配偶者）に記入：':'A欄には書きません：')+kind+' '+yen(r.amt);
+  r.desc=`基礎控除申告書等の区分Ⅰ「${sd.k1}」×区分Ⅱ「${r.k2}」${col===0?'（老人控除対象配偶者）':''}`;
+  r.code = col<=1 ? (aOK?'A_HAIGU':'SP_HAIGU') : (aOK?'A_TOKUBETSU':'SP_TOKUBETSU');
+  return r;
+}
+function judgeFam(p){
+  const age=ageAtYearEnd(p.birth); if(age===null) return null;
+  const inc=wageIncome(p.wage)+num(p.other);
+  const r={age,inc,warn:[],amt:0,calc:`${age}歳（12/31時点）・所得の見積額 ${yen(inc)}`};
+  if(p.live==='abroad'){ r.warn.push('外国に住む家族は、親族関係と送金の証明書類が必要です');
+    if(age>=30 && age<70 && !(p.aStudy||p.aDis||p.a38)){ r.cls='none'; r.title='対象外'; r.desc='外国に住む30〜69歳の家族は、留学・障害者・年38万円以上の送金のどれかに当たる場合だけ対象です。'; r.code='NONE_ABROAD'; return r; } }
+  if(age<16){ if(inc<=620000){ r.cls='info'; r.title='「16歳未満の扶養親族」欄に記入'; r.desc='所得税の控除はありませんが、住民税のために必要です。'; r.code='U16'; } else { r.cls='none'; r.title='対象外'; r.desc='所得が62万円を超えています。'; r.code='NONE'; } return r; }
+  if(inc<=620000){ r.cls='ok';
+    if(age>=19&&age<=22){ r.title='B欄に記入（特定扶養親族）'; r.desc='扶養控除 63万円'; r.code='B_TOKUTEI_FUYO'; r.amt=630000; }
+    else if(age>=70){ const dorou = p.live==='same' && ['父','母','祖父','祖母'].includes(p.rel); r.title='B欄に記入（老人扶養親族'+(dorou?'・同居老親等）':'）'); r.desc='扶養控除 '+(dorou?'58万円':'48万円'); r.code='B_ROJIN'; r.amt=dorou?580000:480000; }
+    else { r.title='B欄に記入（一般の扶養親族）'; r.desc='扶養控除 38万円'; r.code='B_FUYO'; r.amt=380000; }
+    return r; }
+  if(age>=19&&age<=22&&inc<=1230000){ r.cls='ok'; r.amt=tokuteiAmt(inc); r.title='B欄に記入（特定親族にチェック）：特定親族特別控除 '+yen(r.amt); r.desc='基礎控除申告書等の「特定親族特別控除申告書」にも記入します。'; r.code='B_TOKUTEI_SHINZOKU'; return r; }
+  r.cls='none'; r.title='対象外（申告書には書きません）'; r.desc= age>=19&&age<=22 ? '所得が123万円（年収197万円）を超えています。':'所得が62万円（年収136万円）を超えています。'; r.code='NONE'; return r;
+}
+function chosei(sd){ // 所得金額調整控除
+  if(sd.wage<=8500000) return null;
+  const reasons=[]; const s=$('#sSpDis').checked; if(s) reasons.push('本人が特別障害者');
+  const sp=spNode()&&document.querySelector('input[name=spHas]:checked')?.value==='yes'?readPerson(spNode()):null;
+  if(sp && (sp.dis==='特別'||sp.dis==='同居特別') && wageIncome(sp.wage)+num(sp.other)<=580000+40000) reasons.push('配偶者が特別障害者');
+  const u23=u23Dependents(); if(u23.length) reasons.push('23歳未満の扶養親族（'+u23.map(p=>p.name).join('・')+'）');
+  [...document.querySelectorAll('#famList .person')].map(readPerson).forEach(p=>{ if((p.dis==='特別'||p.dis==='同居特別')&&wageIncome(p.wage)+num(p.other)<=620000) reasons.push('特別障害者の扶養親族（'+p.name+'）'); });
+  if(!reasons.length) return {applies:false,reasons};
+  const amt=Math.ceil((Math.min(sd.wage,10000000)-8500000)*0.1);
+  return {applies:true,reasons,amt};
+}
+function insCalc(d){
+  const u23 = u23Dependents().length>0;
+  const sum=(cat,age)=>d.life.filter(x=>x.cat===cat&&x.age===age).reduce((a,x)=>a+num(x.amt),0);
+  const gN=sum('general','new'), gO=sum('general','old'), cN=sum('care','new')+sum('care','old'), pN=sum('pension','new'), pO=sum('pension','old');
+  const gNew = u23 ? fII(gN) : fI(gN), gOld=fIII(gO);
+  const gCap = u23 ? 60000 : 40000;
+  const general = gN&&gO ? Math.max(gOld, Math.min(gNew+gOld,gCap)) : (gN?gNew:gOld);
+  const care = fI(cN);
+  const pNew=fI(pN), pOld=fIII(pO); const pension = pN&&pO ? Math.max(pOld, Math.min(pNew+pOld,40000)) : (pN?pNew:pOld);
+  const life = Math.min(general+care+pension, 120000);
+  const qB=d.quake.filter(x=>x.cat==='quake').reduce((a,x)=>a+num(x.amt),0), qC=d.quake.filter(x=>x.cat==='oldlong').reduce((a,x)=>a+num(x.amt),0);
+  const qBv=Math.min(qB,50000), qCv= qC<=10000?qC:Math.min(Math.ceil(qC/2+5000),15000);
+  const quake=Math.min(qBv+qCv,50000);
+  const si=d.si.reduce((a,x)=>a+num(x.amt),0);
+  const small=num(d.small.kSmall)+num(d.small.kCorpDC)+num(d.small.kIdeco)+num(d.small.kShogai);
+  return {u23,general,care,pension,life,quake,si,small,gN,gO,cN,pN,pO,qB,qC};
+}
+
+// ===== 家族ブロック =====
+function personBlock(kind){
+  const node=document.getElementById('tplPerson').content.firstElementChild.cloneNode(true); node.dataset.kind=kind;
+  if(kind==='sp'){ node.querySelector('[data-only=fam]').remove(); node.querySelector('[data-k=title]').textContent='配偶者'; node.querySelector('[data-k=del]').remove(); }
+  const uid='p'+Math.random().toString(36).slice(2,8);
+  node.querySelectorAll('[data-f]').forEach(el=>{ el.id=uid+'-'+el.dataset.f+(el.type==='radio'?'-'+el.value:''); if(el.type==='radio') el.name=uid+'-live'; });
+  node.querySelectorAll('label').forEach(l=>{ if(l.closest('.seg')||l.closest('.checks')) return; const inp=l.parentElement.querySelector('[data-f]'); if(inp) l.htmlFor=inp.id; });
+  const del=node.querySelector('[data-k=del]'); if(del) del.addEventListener('click',()=>{ node.remove(); renumber(); refreshAll(); saveDraft(); });
+  return node;
+}
+function readPerson(node){ const g=f=>node.querySelector(`[data-f=${f}]`); const live=node.querySelector('[data-f=live]:checked');
+  return { rel: node.dataset.kind==='sp'?'配偶者':(g('rel')?.value||''), name:g('name').value.trim(), kana:g('kana').value.trim(), birth:g('birth').value,
+    wage:num(g('wage').value), other:num(g('other').value), live:live?live.value:'', addr:g('addr').value.trim(), aStudy:g('aStudy').checked, aDis:g('aDis').checked, a38:g('a38').checked, dis:g('dis').value }; }
+function writePerson(node,p){ const g=f=>node.querySelector(`[data-f=${f}]`);
+  if(g('rel')) g('rel').value=p.rel||''; g('name').value=p.name||''; g('kana').value=p.kana||''; g('birth').value=p.birth||'';
+  g('wage').value=p.wage||''; g('other').value=p.other||''; g('addr').value=p.addr||''; g('aStudy').checked=!!p.aStudy; g('aDis').checked=!!p.aDis; g('a38').checked=!!p.a38; g('dis').value=p.dis||'';
+  node.querySelectorAll('[data-f=live]').forEach(r=>r.checked=(r.value===p.live)); }
+function paintVerdict(v,r,empty){
+  if(!r){ v.className='verdict v-none'; v.textContent=empty; return; }
+  v.className='verdict v-'+r.cls; v.innerHTML='';
+  const add=(t,tag,cls)=>{ if(!t) return; const e=document.createElement(tag||'span'); if(cls) e.className=cls; e.textContent=t; v.appendChild(e); };
+  add(r.title,'b'); add(r.desc); add(r.calc,'span','calc'); (r.warn||[]).forEach(w=>add('※ '+w));
+}
+function refreshPerson(node){
+  const p=readPerson(node);
+  node.querySelector('[data-k=addrBox]').hidden = p.live!=='apart' && p.live!=='abroad';
+  node.querySelector('[data-k=abroadBox]').hidden = p.live!=='abroad';
+  const r = node.dataset.kind==='sp' ? judgeSpouse(p, selfData()) : judgeFam(p);
+  paintVerdict(node.querySelector('[data-k=verdict]'), r, '生年月日と収入を入れると、どの欄に当たるか表示します。');
+}
+function renumber(){ document.querySelectorAll('#famList .person').forEach((n,i)=>n.querySelector('[data-k=title]').textContent='家族 '+(i+1)); }
+function addFam(p){ const n=personBlock('fam'); $('#famList').appendChild(n); renumber(); if(p) writePerson(n,p); return n; }
+function spNode(){ return $('#spBox .person'); }
+function setSpouse(has,p){ $('#spBox').hidden = has!=='yes'; if(has==='yes'&&!spNode()) $('#spBox').appendChild(personBlock('sp')); if(p&&spNode()) writePerson(spNode(),p); }
+
+// ===== 保険などの行 =====
+function itemBlock(tpl,listSel){
+  const node=document.getElementById(tpl).content.firstElementChild.cloneNode(true);
+  const uid='i'+Math.random().toString(36).slice(2,8);
+  node.querySelectorAll('[data-f]').forEach(el=>{ el.id=uid+'-'+el.dataset.f; });
+  node.querySelectorAll('label').forEach(l=>{ const inp=l.parentElement.querySelector('[data-f]'); if(inp) l.htmlFor=inp.id; });
+  node.querySelector('[data-k=del]').addEventListener('click',()=>{ node.remove(); refreshAll(); saveDraft(); });
+  $(listSel).appendChild(node); return node;
+}
+const readItem=node=>{ const o={}; node.querySelectorAll('[data-f]').forEach(el=>{ o[el.dataset.f]= el.type==='number'?num(el.value):el.value.trim(); }); return o; };
+const writeItem=(node,o)=>{ node.querySelectorAll('[data-f]').forEach(el=>{ el.value = o[el.dataset.f]??''; }); };
+function addLife(o){ const n=itemBlock('tplLife','#lifeList'); if(o) writeItem(n,o); return n; }
+function addQuake(o){ const n=itemBlock('tplQuake','#quakeList'); if(o) writeItem(n,o); return n; }
+function addSI(o){ const n=itemBlock('tplSI','#siList'); if(o) writeItem(n,o); return n; }
+
+// ===== 全体の再計算 =====
+function refreshAll(){
+  const sd=selfData();
+  const sv=$('#selfVerdict');
+  if(!sd.wage) paintVerdict(sv,null,'給与収入を入れると、基礎控除の額を表示します。');
+  else { const c=chosei(sd);
+    paintVerdict(sv,{cls:'ok',title:`基礎控除 ${yen(sd.basic)}（区分Ⅰ：${sd.k1||'対象外'}）`,desc: c&&c.applies?`所得金額調整控除の対象です（${c.reasons.join('、')}）：${yen(c.amt)}`:(sd.wage>8500000?'給与収入が850万円を超えますが、所得金額調整控除の要件（23歳未満の扶養親族など）に当たる人がいません。':''),
+      calc:`あなたの合計所得の見積額 ${yen(sd.total)}（給与所得${yen(wageIncome(sd.wage))}${sd.other?'＋その他'+yen(sd.other):''}）`},''); }
+  if(spNode()) refreshPerson(spNode());
+  document.querySelectorAll('#famList .person').forEach(refreshPerson);
+  document.querySelectorAll('#lifeList .item').forEach(n=>{ n.querySelector('[data-k=startBox]').hidden = n.querySelector('[data-f=cat]').value!=='pension'; });
+  const d=collect(); const ic=insCalc(d); const t=$('#insTally'); t.innerHTML='';
+  const row=(a,b)=>{ const x=document.createElement('span'); x.textContent=a; const y=document.createElement('span'); y.className='t'; y.textContent=b; t.append(x,y); };
+  row('生命保険料控除'+(ic.u23?'（23歳未満の扶養親族あり：一般は最高6万円）':''), yen(ic.life));
+  row('地震保険料控除', yen(ic.quake)); row('社会保険料控除（自分で払った分）', yen(ic.si)); row('小規模企業共済等掛金控除', yen(ic.small));
+}
+
+// ===== 画面の動き =====
+$('#foreign').addEventListener('change',()=>{ $('#romanBox').hidden=!$('#foreign').checked; });
+document.querySelectorAll('input[name=main]').forEach(r=>r.addEventListener('change',()=>{ $('#mainNote').hidden = !(r.checked&&r.value==='no'); }));
+document.querySelectorAll('input[name=spHas]').forEach(r=>r.addEventListener('change',()=>{ if(r.checked) setSpouse(r.value); refreshAll(); saveDraft(); }));
+document.querySelectorAll('input[name=loanHas]').forEach(r=>r.addEventListener('change',()=>{ const v=document.querySelector('input[name=loanHas]:checked')?.value; $('#loanBox').hidden=v!=='yes'; $('#loanFirst').hidden=v!=='first'; }));
+['sDis','sSpDis','sStudent'].forEach(id=>$('#'+id).addEventListener('change',()=>{ $('#sDetailBox').hidden=!($('#sDis').checked||$('#sSpDis').checked||$('#sStudent').checked); }));
+$('#prevJob').addEventListener('change',()=>{ $('#prevBox').hidden=!$('#prevJob').checked; });
+$('#addFam').addEventListener('click',()=>{ addFam(); refreshAll(); });
+$('#addLife').addEventListener('click',()=>{ addLife(); refreshAll(); });
+$('#addQuake').addEventListener('click',()=>{ addQuake(); refreshAll(); });
+$('#addSI').addEventListener('click',()=>{ addSI(); refreshAll(); });
+$('#f').addEventListener('input',()=>{ refreshAll(); saveDraft(); });
+$('#f').addEventListener('change',()=>{ refreshAll(); saveDraft(); });
+
+// ===== 集めて確認 =====
+const KANA=/^[ァ-ヶー・\s　]+$/;
+const radio=n=>document.querySelector(`input[name=${n}]:checked`)?.value||'';
+function collect(){
+  const self={ company:$('#company').value.trim(), name:$('#name').value.trim(), kana:$('#kana').value.trim(), foreign:$('#foreign').checked, roman:$('#roman').value.trim(),
+    birth:$('#birth').value, zip:$('#zip').value.trim(), addr:$('#addr').value.trim(), head:$('#head').value.trim(), headRel:$('#headRel').value.trim(), main:radio('main'),
+    dis:$('#sDis').checked, spDis:$('#sSpDis').checked, widow:$('#sWidow').checked, single:$('#sSingle').checked, student:$('#sStudent').checked, detail:$('#sDetail').value.trim(),
+    wage:num($('#selfWage').value), other:num($('#selfOther').value) };
+  const prev=$('#prevJob').checked?{name:$('#prevName').value.trim(),quit:$('#prevQuit').value,pay:num($('#prevPay').value),si:num($('#prevSI').value),tax:num($('#prevTax').value),join:$('#joinDate').value,slip:$('#prevSlip').value,more:$('#prevMore').value.trim()}:null;
+  const spHas=radio('spHas'); const sp=spHas==='yes'&&spNode()?readPerson(spNode()):null;
+  const fam=[...document.querySelectorAll('#famList .person')].map(readPerson);
+  const life=[...document.querySelectorAll('#lifeList .item')].map(readItem);
+  const quake=[...document.querySelectorAll('#quakeList .item')].map(readItem);
+  const si=[...document.querySelectorAll('#siList .item')].map(readItem);
+  const small={kSmall:num($('#kSmall').value),kCorpDC:num($('#kCorpDC').value),kIdeco:num($('#kIdeco').value),kShogai:num($('#kShogai').value)};
+  const loanHas=radio('loanHas'); const loan=loanHas==='yes'?{start:$('#loanStart').value,bal:num($('#loanBal').value),share:$('#loanShare').value.trim(),amt:num($('#loanAmt').value)}:null;
+  return {self,prev,spHas,sp,fam,life,quake,si,small,loanHas,loan,memo:$('#memo').value.trim()};
+}
+function validate(d){
+  const e=[]; const s=d.self;
+  if(!s.company) e.push('勤務先の会社名'); if(!s.name) e.push('あなたの氏名');
+  if(!s.kana) e.push('あなたのフリガナ'); else if(!KANA.test(s.kana)) e.push('あなたのフリガナはカタカナで入力してください');
+  if(s.foreign&&!s.roman) e.push('氏名のアルファベット表記');
+  if(!s.birth) e.push('あなたの生年月日'); if(!s.zip) e.push('郵便番号'); if(!s.addr) e.push('住所'); if(!s.head) e.push('世帯主の氏名'); if(!s.headRel) e.push('世帯主との続柄');
+  if(!s.main) e.push('一番収入の多い勤務先かどうか'); if(!s.wage) e.push('あなたの今年の給与収入');
+  if(d.prev && !d.prev.name) e.push('前の会社の名称');
+  if(d.prev && !d.prev.slip) e.push('前の会社の源泉徴収票が手元にあるか');
+  if(d.prev && d.prev.slip==='have' && !d.prev.pay) e.push('前の会社の支払金額（源泉徴収票の金額）');
+  if(d.prev && !d.prev.join) e.push('この会社の入社日');
+  if(!d.spHas) e.push('配偶者がいるかどうか');
+  const chk=(p,label,isSp)=>{ if(!p.name) e.push(label+'の氏名'); if(!p.kana) e.push(label+'のフリガナ'); else if(!KANA.test(p.kana)) e.push(label+'のフリガナはカタカナで入力してください');
+    if(!p.birth) e.push(label+'の生年月日'); if(!p.live) e.push(label+'の住んでいる所'); if((p.live==='apart'||p.live==='abroad')&&!p.addr) e.push(label+'の住所'); if(!isSp&&!p.rel) e.push(label+'の続柄'); };
+  if(d.sp) chk(d.sp,'配偶者',true); d.fam.forEach((p,i)=>chk(p,'家族'+(i+1),false));
+  d.life.forEach((x,i)=>{ const l='生命保険'+(i+1); if(!x.co) e.push(l+'の保険会社'); if(!x.cat) e.push(l+'の区分'); if(!x.age) e.push(l+'の新・旧の区分'); if(!x.holder) e.push(l+'の契約者'); if(!x.payee||!x.payeeRel) e.push(l+'の受取人と続柄'); if(!x.amt) e.push(l+'の申告額'); });
+  d.quake.forEach((x,i)=>{ const l='地震保険'+(i+1); if(!x.co) e.push(l+'の保険会社'); if(!x.cat) e.push(l+'の区分'); if(!x.holder) e.push(l+'の契約者'); if(!x.amt) e.push(l+'の申告額'); });
+  d.si.forEach((x,i)=>{ const l='社会保険料'+(i+1); if(!x.kind) e.push(l+'の種類'); if(!x.who) e.push(l+'の負担する人'); if(!x.amt) e.push(l+'の金額'); });
+  if(!d.loanHas) e.push('住宅ローン控除を受けるかどうか');
+  if(d.loan && (!d.loan.start||!d.loan.bal)) e.push('住宅ローンの居住開始年月日と年末残高');
+  return e;
+}
+
+// ===== 回答コード =====
+function b64url(bytes){ let s=''; for(let i=0;i<bytes.length;i+=0x8000) s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+async function encode(obj){ const raw=new TextEncoder().encode(JSON.stringify(obj));
+  try{ if(typeof CompressionStream==='function'){ const cs=new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw')); return 'NC1z.'+b64url(new Uint8Array(await new Response(cs).arrayBuffer())); } }catch(_){}
+  return 'NC1p.'+b64url(raw); }
+function results(d){
+  const sd={wage:d.self.wage,other:d.self.other,total:wageIncome(d.self.wage)+d.self.other}; sd.basic=basic(sd.total); sd.k1=kubun1(sd.total);
+  const sp=d.sp?judgeSpouse(d.sp,sd):null; const fam=d.fam.map(judgeFam); const ic=insCalc(d); const ch=chosei(sd);
+  return {sd,sp,fam,ic,ch};
+}
+function certList(d){
+  const c=[];
+  d.life.forEach(x=>c.push(`生命保険料控除証明書（${x.co}）`));
+  d.quake.forEach(x=>c.push(`地震保険料控除証明書（${x.co}）`));
+  d.si.forEach(x=>{ if(/国民年金/.test(x.kind)) c.push(`${x.kind}の控除証明書（${x.who}）`); });
+  if(d.small.kSmall) c.push('小規模企業共済掛金払込証明書'); if(d.small.kIdeco) c.push('iDeCo（個人型年金）掛金払込証明書'); if(d.small.kCorpDC) c.push('企業型年金の掛金の証明書'); if(d.small.kShogai) c.push('心身障害者扶養共済の掛金の証明書');
+  if(d.loanHas==='yes'){ c.push('住宅借入金等特別控除申告書（税務署から届いたもの）'); c.push('住宅ローンの年末残高証明書'); }
+  if(d.prev) c.push(`前の会社の源泉徴収票（${d.prev.name}）`);
+  if(d.self.student) c.push('勤労学生の証明書（学校が発行）');
+  d.fam.forEach(p=>{ if(p.live==='abroad') c.push(`${p.name}さんの親族関係書類・送金関係書類`); });
+  if(d.sp&&d.sp.live==='abroad') c.push(`${d.sp.name}さんの親族関係書類・送金関係書類`);
+  return c;
+}
+function summaryText(d,R){
+  const s=d.self, L=[];
+  L.push('【令和8年分 年末調整の回答】');
+  L.push(`会社：${s.company}`); L.push(`氏名：${s.name}（${s.kana}）${s.foreign?' / '+s.roman:''}`);
+  L.push(`生年月日：${s.birth}　住所：〒${s.zip} ${s.addr}`); L.push(`世帯主：${s.head}（続柄：${s.headRel}）`);
+  if(s.main==='no') L.push('※ この会社はメインの勤務先ではありません');
+  const own=[s.dis&&'障害者',s.spDis&&'特別障害者',s.widow&&'寡婦',s.single&&'ひとり親',s.student&&'勤労学生'].filter(Boolean); if(own.length) L.push(`本人の区分：${own.join('・')}${s.detail?'（'+s.detail+'）':''}`);
+  L.push(`今年の給与収入：${yen(s.wage)}${s.other?'／給与以外の所得：'+yen(s.other):''} → 基礎控除 ${yen(R.sd.basic)}`);
+  if(d.prev){ L.push(`中途入社：入社日${d.prev.join}／前の会社：${d.prev.name}（退職${d.prev.quit}）`+(d.prev.slip==='wait'?'　※源泉徴収票まだ届いていない':`　支払${yen(d.prev.pay)} 社保${yen(d.prev.si)} 源泉${yen(d.prev.tax)}`)); if(d.prev.more) L.push(`その他の前職：${d.prev.more}`); }
+  if(R.ch&&R.ch.applies) L.push(`所得金額調整控除：対象（${R.ch.reasons.join('、')}）`);
+  L.push(d.sp?`配偶者：${d.sp.name}（${d.sp.kana}）${d.sp.birth} 給与収入${yen(d.sp.wage)} → ${R.sp?R.sp.title:''}`:'配偶者：なし');
+  d.fam.forEach((p,i)=>L.push(`家族${i+1}：${p.rel} ${p.name}（${p.kana}）${p.birth} 給与収入${yen(p.wage)} → ${R.fam[i]?R.fam[i].title:''}`));
+  d.life.forEach(x=>L.push(`生命保険：${x.co} ${({general:'一般',care:'介護医療',pension:'個人年金'})[x.cat]}・${x.age==='new'?'新':'旧'} 受取人${x.payee}（${x.payeeRel}） ${yen(x.amt)}`));
+  d.quake.forEach(x=>L.push(`地震保険：${x.co} ${x.cat==='quake'?'地震':'旧長期'} ${yen(x.amt)}`));
+  d.si.forEach(x=>L.push(`社会保険料：${x.kind}（${x.who}） ${yen(x.amt)}`));
+  const sm=d.small; if(sm.kSmall||sm.kCorpDC||sm.kIdeco||sm.kShogai) L.push(`小規模共済等：${[sm.kSmall&&'小規模企業共済'+yen(sm.kSmall),sm.kCorpDC&&'企業型DC'+yen(sm.kCorpDC),sm.kIdeco&&'iDeCo'+yen(sm.kIdeco),sm.kShogai&&'障害者扶養共済'+yen(sm.kShogai)].filter(Boolean).join('・')}`);
+  L.push(`控除の目安：生命保険${yen(R.ic.life)}・地震保険${yen(R.ic.quake)}・社会保険${yen(R.ic.si)}・小規模共済等${yen(R.ic.small)}`);
+  L.push(d.loanHas==='yes'?`住宅ローン控除：あり（居住開始${d.loan.start}・年末残高${yen(d.loan.bal)}${d.loan.amt?'・控除額'+yen(d.loan.amt):''}）`:d.loanHas==='first'?'住宅ローン控除：1年目（確定申告で対応）':'住宅ローン控除：なし');
+  if(d.memo) L.push(`連絡事項：${d.memo}`);
+  const cl=certList(d);
+  if(cl.length){ L.push(''); L.push(`■この回答と一緒に、次の書類の写真（${cl.length}枚）を送ってください`); cl.forEach((x,i)=>L.push(`${i+1}. ${x}`)); }
+  return L.join('\n');
+}
+$('#f').addEventListener('submit', async ev=>{
+  ev.preventDefault(); const d=collect(); const e=validate(d); const box=$('#errBox');
+  if(e.length){ box.hidden=false; box.innerHTML='<b>入力が足りない項目があります</b>'; const ul=document.createElement('ul'); e.forEach(t=>{ const li=document.createElement('li'); li.textContent=t; ul.appendChild(li); }); box.appendChild(ul); $('#result').hidden=true; box.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  box.hidden=true; const R=results(d);
+  const payload={v:2,y:2026,k:clientCode,t:new Date().toISOString(),...d,
+    j:{basic:R.sd.basic,k1:R.sd.k1,total:R.sd.total,sp:R.sp?R.sp.code:'',spAmt:R.sp?R.sp.amt:0,spK2:R.sp?R.sp.k2:'',fam:R.fam.map(r=>r?r.code:''),famAmt:R.fam.map(r=>r?r.amt:0),
+       u23:R.ic.u23,life:R.ic.life,lifeG:R.ic.general,lifeC:R.ic.care,lifeP:R.ic.pension,quake:R.ic.quake,si:R.ic.si,small:R.ic.small,certs:certList(d),chosei:R.ch&&R.ch.applies?R.ch.amt:0,choseiWhy:R.ch&&R.ch.applies?R.ch.reasons.join('、'):''}};
+  const code=await encode(payload);
+  $('#summary').textContent=summaryText(d,R)+'\n\n▼回答コード（消さずに送ってください）\n'+code;
+  $('#result').hidden=false; $('#copied').hidden=true; $('#result').scrollIntoView({behavior:'smooth',block:'start'});
+});
+$('#copyBtn').addEventListener('click',()=>{ const t=$('#summary').textContent;
+  navigator.clipboard.writeText(t).then(()=>{ $('#copied').hidden=false; }).catch(()=>{ const r=document.createRange(); r.selectNodeContents($('#summary')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }); });
+
+// ===== 下書き（この端末だけ） =====
+const KEY='nencho-draft-'+(clientCode||'x');
+function saveDraft(){ try{ localStorage.setItem(KEY, JSON.stringify(collect())); }catch(_){} }
+function restore(d){
+  const s=d.self||{};
+  ['company','name','kana','roman','birth','zip','addr','head','headRel','sDetail'].forEach(k=>{ const el=$('#'+k); if(el) el.value=(k==='sDetail'?s.detail:s[k])||''; });
+  $('#selfWage').value=s.wage||''; $('#selfOther').value=s.other||'';
+  $('#foreign').checked=!!s.foreign; $('#romanBox').hidden=!s.foreign;
+  document.querySelectorAll('input[name=main]').forEach(r=>r.checked=r.value===s.main); $('#mainNote').hidden=s.main!=='no';
+  $('#sDis').checked=!!s.dis; $('#sSpDis').checked=!!s.spDis; $('#sWidow').checked=!!s.widow; $('#sSingle').checked=!!s.single; $('#sStudent').checked=!!s.student;
+  $('#sDetailBox').hidden=!(s.dis||s.spDis||s.student);
+  $('#prevJob').checked=!!d.prev; $('#prevBox').hidden=!d.prev; const pv=d.prev||{}; $('#prevName').value=pv.name||''; $('#prevQuit').value=pv.quit||''; $('#prevPay').value=pv.pay||''; $('#prevSI').value=pv.si||''; $('#prevTax').value=pv.tax||''; $('#joinDate').value=pv.join||''; $('#prevSlip').value=pv.slip||''; $('#prevMore').value=pv.more||'';
+  document.querySelectorAll('input[name=spHas]').forEach(r=>r.checked=r.value===d.spHas); $('#spBox').innerHTML=''; $('#spBox').hidden=true; if(d.spHas) setSpouse(d.spHas,d.sp);
+  $('#famList').innerHTML=''; (d.fam||[]).forEach(p=>addFam(p));
+  $('#lifeList').innerHTML=''; (d.life||[]).forEach(addLife); $('#quakeList').innerHTML=''; (d.quake||[]).forEach(addQuake); $('#siList').innerHTML=''; (d.si||[]).forEach(addSI);
+  $('#optLife').open=!!(d.life||[]).length; $('#optQuake').open=!!(d.quake||[]).length; $('#optSI').open=!!(d.si||[]).length;
+  const sm=d.small||{}; ['kSmall','kCorpDC','kIdeco','kShogai'].forEach(k=>$('#'+k).value=sm[k]||''); $('#optSmall').open=!!(sm.kSmall||sm.kCorpDC||sm.kIdeco||sm.kShogai);
+  document.querySelectorAll('input[name=loanHas]').forEach(r=>r.checked=r.value===d.loanHas); $('#loanBox').hidden=d.loanHas!=='yes'; $('#loanFirst').hidden=d.loanHas!=='first';
+  const ln=d.loan||{}; $('#loanStart').value=ln.start||''; $('#loanBal').value=ln.bal||''; $('#loanShare').value=ln.share||''; $('#loanAmt').value=ln.amt||'';
+  $('#memo').value=d.memo||'';
+  refreshAll();
+}
+$('#clearAll').addEventListener('click',()=>{ restore({self:{},spHas:'',fam:[],life:[],quake:[],si:[],small:{},loanHas:''}); $('#result').hidden=true; $('#errBox').hidden=true; try{localStorage.removeItem(KEY);}catch(_){} });
+$('#loadSample').addEventListener('click',()=>{
+  restore({self:{company:'株式会社〇〇商事（記入例）',name:'佐藤 一郎',kana:'サトウ イチロウ',birth:'1985-04-12',zip:'150-0011',addr:'東京都渋谷区東1-2-3',head:'佐藤 一郎',headRel:'本人',main:'yes',wage:6000000,other:0},
+    spHas:'yes', sp:{name:'佐藤 花子',kana:'サトウ ハナコ',birth:'1988-09-03',wage:1000000,live:'same'},
+    fam:[{rel:'子',name:'佐藤 太郎',kana:'サトウ タロウ',birth:'2002-04-01',wage:3000000,live:'apart',addr:'東京都品川区〇〇1-1'},{rel:'子',name:'佐藤 次郎',kana:'サトウ ジロウ',birth:'2006-05-20',wage:1500000,live:'same'},{rel:'子',name:'佐藤 ゆい',kana:'サトウ ユイ',birth:'2016-07-01',wage:0,live:'same'}],
+    life:[{co:'〇〇生命',kind:'終身保険',cat:'general',age:'new',term:'終身',holder:'佐藤 一郎',payee:'佐藤 花子',payeeRel:'妻',amt:100000},{co:'△△生命',kind:'医療保険',cat:'care',age:'new',term:'終身',holder:'佐藤 一郎',payee:'佐藤 一郎',payeeRel:'本人',amt:48000}],
+    quake:[{co:'△△損保',kind:'火災保険（地震）',term:'1年',holder:'佐藤 一郎',resident:'佐藤 一郎',cat:'quake',amt:15000}], si:[], small:{kIdeco:144000}, loanHas:'no', memo:''});
+  $('#result').hidden=true;
+});
+
+
+// ===== ？ヘルプ =====
+const HELP=[
+ [/^フリガナ/,'カタカナで入力してください。外国籍の方は、名前の読みをカタカナで書いてください（例：グエン ヴァン アン）。'],
+ [/アルファベット表記/,'在留カードに書かれているとおりに、大文字で入力してください。'],
+ [/^世帯主の氏名/,'住民票の世帯主です。あなたが世帯主なら自分の名前を、親と同居していて親が世帯主なら親の名前を書きます。'],
+ [/世帯主から見たあなたの続柄/,'世帯主があなた自身なら「本人」。親が世帯主なら「子」、配偶者が世帯主なら「夫」または「妻」です。'],
+ [/一番多い勤務先/,'2か所以上で働いている人は、収入が一番多い会社にだけこの申告書を出せます。副業先には出さないでください。'],
+ [/当てはまるもの$/,'<b>寡婦</b>：夫と死別・離婚した後に再婚していない女性など（所得500万円以下）。<b>ひとり親</b>：未婚・死別・離婚で、生計を同じくする子がいる人（所得500万円以下）。<b>勤労学生</b>：学生で給与収入が約163万円以下の人。くわしくは会社にご確認ください。'],
+ [/^今年の給与収入/,'税金などが引かれる前の総支給額（給料＋賞与）の1〜12月の見込みです。通勤手当（交通費）は含めません。今年入社した人は、前の会社の分も含めます。'],
+ [/^給与以外の所得/,'副業（給与以外）・不動産・年金などの「所得」（収入から経費を引いた額）です。ない人は空欄で大丈夫です。'],
+ [/前の会社からも給与/,'今年、ほかの会社を辞めてこの会社に入った人はチェックしてください。前の会社の源泉徴収票が必要です。届いていない場合は、前の会社に発行を依頼してください。'],
+ [/^源泉徴収票|前の会社の源泉徴収票/,'前の会社から受け取る「給与所得の源泉徴収票」です。手元にない場合は「まだ届いていない」を選び、前の会社に発行を依頼してください。'],
+ [/配偶者（夫・妻）$/,'法律上の配偶者だけが対象です（事実婚・内縁の方は対象外）。配偶者が働いていても、まずは入力してください。控除を受けられるかは自動で判定します。'],
+ [/一緒に生活している家族$/,'同居している家族のほか、別居していても仕送りなどで生活費を出している家族（親、学生の子など）も入れてください。'],
+ [/続柄（あなたから見て）/,'あなたから見た関係です。子ども→「子」、自分の親→「父」「母」など。'],
+ [/^住んでいる所/,'別居でも、生活費を出していれば対象になります。外国に住んでいる家族は、親族関係と送金を証明する書類が必要です。'],
+ [/障害者に当てはまる場合/,'障害者手帳などを持っている場合に選びます。「特別障害者」は身体障害者手帳1・2級、精神障害者保健福祉手帳1級などです。'],
+ [/生命保険料/,'届いた「生命保険料控除証明書」を見て入力します。<b>金額は「申告額」（12月末までの見込み）</b>を入れます。「証明額」（9月末までなど途中の金額）ではありません。区分（一般・介護医療・個人年金）と新・旧は、証明書に書いてあるとおりに選んでください。'],
+ [/^地震保険料$/,'火災保険の証明書のうち、「地震保険料」と書かれた金額だけが対象です。火災保険の部分は入れません。'],
+ [/自分で払った社会保険料/,'国民年金・国民健康保険など、あなたが自分で払った分です。給料から引かれている健康保険・厚生年金は入れません。家族の国民年金をあなたが払った場合も入れられます。'],
+ [/iDeCo・小規模企業共済/,'証明書の掛金（12月末までの見込み）を入れます。給料から天引きされている場合は入れません。'],
+ [/住宅ローン控除$/,'2年目以降の人だけ年末調整で受けられます。税務署から届いた「住宅借入金等特別控除申告書」と、銀行の「年末残高証明書」を用意してください。1年目の人は確定申告が必要です。'],
+ [/^申告額/,'証明書に書かれている「申告額」（または「年間の見込み額」）です。「証明額」とは違うので注意してください。'],
+ [/新・旧の区分/,'証明書に「新」「旧」または「新制度」「旧制度」と書いてあります。そのとおりに選んでください。'],
+ [/受取人とあなたの続柄/,'受取人があなた・配偶者・親族の保険だけが対象です。例：本人、妻、子。'],
+ [/会社への連絡事項/,'分からない項目、引っ越し・結婚・出産などの変更、年末までに収入が大きく変わりそうなことなどを書いてください。'],
+];
+function addHelp(root){
+  root.querySelectorAll('label:not(.qa-done), .lbl:not(.qa-done), summary:not(.qa-done), h2:not(.qa-done)').forEach(el=>{
+    if(el.closest('.checks')||el.closest('.seg')||el.closest('details.faq')||el.closest('#faq')) return;
+    const txt=el.textContent.replace(/必須/g,'').replace(/^\s*[0-9０-９？]\s*/,'').trim();
+    let hit=HELP.find(([re])=>re.test(txt)); if(!hit) return;
+    if(el.closest('.person') && /^今年の給与収入/.test(txt)) hit=[0,'その家族の、税金などが引かれる前の給与（パート・アルバイトを含む）の1〜12月の見込みです。交通費は含めません。<b>扶養に入れるかの目安は年収136万円以下</b>（19〜22歳の子は197万円以下まで特定親族として控除あり）です。'];
+    if(el.closest('.person') && /^給与以外の所得/.test(txt)) hit=[0,'年金・事業・不動産などの「所得」です。年金だけの親の場合は、年金の額から公的年金等控除を引いた額です。分からなければ年金の額を「会社への連絡事項」に書いてください。'];
+    el.classList.add('qa-done');
+    const b=document.createElement('button'); b.type='button'; b.className='qa'; b.textContent='?'; b.setAttribute('aria-label','説明を見る'); b.setAttribute('aria-expanded','false');
+    const box=document.createElement('div'); box.className='help'; box.hidden=true; box.innerHTML=hit[1];
+    b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); box.hidden=!box.hidden; b.setAttribute('aria-expanded',String(!box.hidden)); });
+    el.appendChild(b);
+    if(el.tagName==='SUMMARY') el.parentElement.insertBefore(box, el.nextSibling); else el.insertAdjacentElement('afterend',box);
+  });
+}
+addHelp(document);
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{ if(n.nodeType===1) addHelp(n); }))).observe(document.body,{childList:true,subtree:true});
+
+// 起動
+if(clientCode){ $('#clientLine').hidden=false; $('#clientName').textContent='顧問先コード '+clientCode+' の会社'; }
+let draft=null; try{ draft=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(_){}
+if(draft&&draft.self) restore(draft); else refreshAll();
+window.__calc={wageIncome,basic,kubun1,judgeSpouse,judgeFam,fI,fII,fIII,tokuteiAmt};
+})();
+</script>
+
+</body></html>
