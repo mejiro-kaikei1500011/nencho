@@ -1,0 +1,430 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>魔法陣 入力サポート</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/encoding-japanese@2.2.0/encoding.min.js"></script>
+<style>
+/* 事務所の作業机：上から「読込 → CSV → 入力シート → 照合」の4段。入力シートは魔法陣のタブ順に並べる */
+:root{
+  --bg:#f5f7f6; --paper:#ffffff; --ink:#1d2a28; --muted:#5d6b68; --line:#d5dedb;
+  --accent:#1f6f6b; --accent-ink:#ffffff; --accent-soft:#e2efed;
+  --warn:#9a5b00; --warn-soft:#fdf1dc; --bad:#b3261e; --bad-soft:#fbe9e7; --ok:#2e7d4f; --ok-soft:#e5f3ea;
+  --display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --body:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121816; --paper:#1a2220; --ink:#e4ebe9; --muted:#9fb0ac; --line:#2f3b38;
+  --accent:#5cbcb4; --accent-ink:#0d1a18; --accent-soft:#1f3532;
+  --warn:#f0b863; --warn-soft:#3a2d16; --bad:#f2938b; --bad-soft:#3d1f1c; --ok:#7fd1a0; --ok-soft:#1c3326; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121816; --paper:#1a2220; --ink:#e4ebe9; --muted:#9fb0ac; --line:#2f3b38;
+  --accent:#5cbcb4; --accent-ink:#0d1a18; --accent-soft:#1f3532;
+  --warn:#f0b863; --warn-soft:#3a2d16; --bad:#f2938b; --bad-soft:#3d1f1c; --ok:#7fd1a0; --ok-soft:#1c3326; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.7;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.35}
+h1{font-size:1.45rem} h2{font-size:1.1rem;display:flex;gap:10px;align-items:center} h3{font-size:.98rem}
+.step{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:.85rem;flex:none}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.lead{color:var(--muted);margin:0}
+section.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+textarea,input[type=text]{font:inherit;font-size:16px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+textarea{min-height:110px;font-size:14px}
+button,.filebtn{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:9px 14px;display:inline-block}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.small{padding:4px 10px;font-size:.82rem}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:1px}
+input[type=file]{font:inherit;font-size:.88rem;max-width:100%}
+select{font:inherit;font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.msg{border-radius:8px;padding:8px 12px;font-size:.88rem}
+.msg.ok{background:var(--ok-soft);color:var(--ok)} .msg.warn{background:var(--warn-soft);color:var(--warn)} .msg.bad{background:var(--bad-soft);color:var(--bad)}
+.note{font-size:.82rem;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip{display:inline-block;border-radius:999px;padding:1px 8px;font-size:.75rem;margin:1px 4px 1px 0;white-space:nowrap}
+.c-ok{background:var(--ok-soft);color:var(--ok)} .c-warn{background:var(--warn-soft);color:var(--warn)} .c-bad{background:var(--bad-soft);color:var(--bad)} .c-none{color:var(--muted);border:1px solid var(--line)}
+.settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;border:1px dashed var(--line);border-radius:8px;padding:10px 12px;font-size:.86rem}
+.settings b{color:var(--accent)}
+/* 入力シート */
+.sheetbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.roster{display:flex;flex-wrap:wrap;gap:6px}
+.roster button{padding:4px 10px;font-size:.84rem}
+.roster button.cur{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.roster button.done{background:var(--ok-soft);color:var(--ok)}
+.sheet{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.sheet-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline}
+.sheet-head .nm{font-family:var(--display);font-size:1.25rem}
+.tab{border-left:4px solid var(--accent);padding:2px 0 2px 12px;display:flex;flex-direction:column;gap:6px}
+.tab.skip{border-left-color:var(--line);color:var(--muted)}
+.tab .tt{font-weight:700;font-family:var(--display)}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:2px 14px;font-size:.9rem}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-variant-numeric:tabular-nums;font-weight:500}
+.big{font-size:1.05rem;font-weight:700}
+.alert{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:4px 10px;font-size:.84rem}
+.expect{background:var(--accent-soft);border-radius:8px;padding:10px 12px}
+.expect table{background:transparent}
+.done-box{display:flex;gap:8px;align-items:center;font-weight:700}
+.done-box input{width:20px;height:20px}
+.print-only{display:none}
+.sheet[hidden]{display:none}
+@media print{
+  body{background:#fff;padding:0;font-size:12px}
+  .no-print{display:none!important}
+  .print-only{display:block}
+  section.card{border:none;padding:0}
+  .sheet{break-after:page;border:none;padding:0}
+  .tab{break-inside:avoid}
+}
+</style>
+<div class="wrap">
+<header class="no-print" style="display:flex;flex-direction:column;gap:6px">
+  <div class="eyebrow">令和8年分 年末調整｜MEJIRO会計事務所 内部用</div>
+  <h1>魔法陣 入力サポート</h1>
+  <p class="lead">顧問先から届いた「まとめコード」を、魔法陣に読み込むCSVと、タブ順の入力シートに変えます。入力後は魔法陣の「年末調整一覧」と突き合わせて、入力ミスを見つけます。データはこのパソコンの中だけで処理され、どこにも送られません。</p>
+</header>
+
+<section class="card no-print">
+  <h2><span class="step">1</span>まとめコードを読み込む</h2>
+  <textarea id="paste" placeholder="経理担当者から届いたメールの本文をそのまま貼り付けてください（NCB1… で始まるまとめコード。個別のNC1…コードも可）"></textarea>
+  <div class="row">
+    <button class="primary" id="loadBtn">読み込む</button>
+    <button id="sampleBtn">見本データで試す</button>
+    <button id="clearBtn" class="small">クリア</button>
+  </div>
+  <div id="loadMsg"></div>
+  <details>
+    <summary>魔法陣にすでに社員が登録されている場合（昨年からの繰越など）</summary>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+      <p class="note">魔法陣の［ファイル］→［テキストファイルの読込・出力］→［出力］→［社員情報］で出したCSVを選ぶと、社員No.と魔法陣に登録済みの氏名の書き方（スペースなど）に合わせてCSVを作ります。二重登録を防げます。</p>
+      <input type="file" id="empFile" accept=".csv,.txt">
+      <div id="empMsg"></div>
+    </div>
+  </details>
+</section>
+
+<section class="card no-print" id="secCsv" hidden>
+  <h2><span class="step">2</span>社員情報CSVを魔法陣に読み込む</h2>
+  <div id="csvSummary"></div>
+  <div class="row"><button class="primary" id="csvBtn">社員情報CSVを保存</button><span id="csvMsg"></span></div>
+  <div class="settings">
+    <div>魔法陣：［ファイル］→［テキストファイルの読込・出力］→［読込］→<b>［社員情報］</b></div>
+    <div>Step2 形式：初回は［新規］、2回目から<b>［MEJIRO連携］</b>を選ぶだけ</div>
+    <div>Step3 見出し行：<b>行番号1</b>／Step5 開始行：<b>行番号2</b>・合計行<b>なし</b></div>
+    <div>Step4 氏名・フリガナ：<b>姓と名が一緒</b>／日付：<b>「1996/04/01」＋和暦に変換ON</b>／郵便番号：<b>「123-0001」</b>／住所：<b>2つに分かれている</b></div>
+    <div>Step6 項目：見出しと同じ名前を選ぶ（初回だけ）／同一人物の判断：<b id="keyHint">「氏名」が一致する場合</b></div>
+    <div>Step7 登録名：<b>MEJIRO連携</b></div>
+  </div>
+  <div id="csvWarn"></div>
+</section>
+
+<section class="card" id="secSheet" hidden>
+  <div class="no-print" style="display:flex;flex-direction:column;gap:10px">
+    <h2><span class="step">3</span>入力シートを見ながら魔法陣に入力する</h2>
+    <p class="note">魔法陣の［(2)年末調整］→［源泉徴収簿］→［個別入力］のタブ順に並べています。金額が0の項目は省いています。「申告がない」項目は灰色です。</p>
+    <div class="sheetbar">
+      <button id="prevBtn" class="small">← 前の人</button>
+      <button id="nextBtn" class="small">次の人 →</button>
+      <span id="progress" class="note"></span>
+      <button id="printBtn" class="small">全員分を印刷</button>
+    </div>
+    <div class="roster" id="roster"></div>
+  </div>
+  <div id="sheets"></div>
+</section>
+
+<section class="card no-print" id="secCheck" hidden>
+  <h2><span class="step">4</span>魔法陣の計算結果と照合する</h2>
+  <p class="note">魔法陣の［ファイル］→［テキストファイルの読込・出力］→［出力］→［年末調整一覧］でCSVを出し、ここで選びます。申告書から計算した金額と1円単位で突き合わせます。</p>
+  <input type="file" id="ichiranFile" accept=".csv,.txt">
+  <div id="checkMsg"></div>
+  <div id="checkResult"></div>
+</section>
+</div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>Math.max(0,Math.floor(+String(v??'').replace(/[,円\s]/g,'')||0));
+const yen=n=>(n||0).toLocaleString('ja-JP');
+const KEY='mahoujin-support-v1';
+let co='', items=[], emp=null, cur=0, done={};
+
+// ===== 令和8年分の計算（入力フォームと同じ式） =====
+const YEAR_END=new Date(2026,11,31);
+function wageIncome(w){ w=num(w); if(w<=740000) return 0; if(w<2200000) return w-740000; if(w<3600000) return Math.floor(w*0.7)-80000; if(w<6600000) return Math.floor(w*0.8)-440000; if(w<8500000) return Math.floor(w*0.9)-1100000; return w-1950000; }
+function ageAt(b){ if(!b) return null; const d=new Date(b+'T00:00:00'); if(isNaN(d)) return null; let a=YEAR_END.getFullYear()-d.getFullYear(); if(YEAR_END<new Date(YEAR_END.getFullYear(),d.getMonth(),d.getDate())) a--; return a; }
+const incOf=f=>wageIncome(f.wage)+num(f.other);
+function wareki(b){ if(!b) return ''; const d=new Date(b+'T00:00:00'); if(isNaN(d)) return b; const y=d.getFullYear(),m=d.getMonth()+1,dd=d.getDate(); const t=d.getTime();
+  let e,ey; if(t>=new Date(2019,4,1).getTime()){e='令和';ey=y-2018;} else if(t>=new Date(1989,0,8).getTime()){e='平成';ey=y-1988;} else if(t>=new Date(1926,11,25).getTime()){e='昭和';ey=y-1925;} else {e='大正';ey=y-1911;}
+  return `${e}${ey===1?'元':ey}年${m}月${dd}日`; }
+const DIS_AMT={'一般':270000,'特別':400000,'同居特別':750000};
+const FUYO_CODES=['B_FUYO','B_TOKUTEI_FUYO','B_ROJIN'];
+const LIVE={same:'同居',apart:'別居',abroad:'国外'};
+const FUTSU={'普A':'総従業員が2人以下','普B':'他の事業所で特別徴収','普C':'給与が少なく税額が引けない','普D':'給与の支払が不定期','普E':'事業専従者（個人事業主のみ）','普F':'退職者・退職予定者・休職者'};
+
+function analyze(p){
+  const s=p.self||{}, j=p.j||{}, fam=p.fam||[], pv=p.prev||{}, ln=p.loan||{};
+  const famAll=[...(p.sp?[{...p.sp,_sp:true,_code:j.sp,_amt:j.spAmt||0}]:[]), ...fam.map((f,i)=>({...f,_code:(j.fam||[])[i],_amt:(j.famAmt||[])[i]||0}))];
+  famAll.forEach(f=>{ f._age=ageAt(f.birth); f._inc=incOf(f); });
+  const deps=famAll.filter(f=>!f._sp && (FUYO_CODES.includes(f._code)||f._code==='U16'));
+  // 障害者控除等（本人＋同一生計配偶者＋扶養親族）
+  let dis=0; const disWhy=[];
+  if(s.spDis){ dis+=400000; disWhy.push('本人 特別障害者 40万'); } else if(s.dis){ dis+=270000; disWhy.push('本人 障害者 27万'); }
+  if(s.single){ dis+=350000; disWhy.push('ひとり親 35万'); } else if(s.widow){ dis+=270000; disWhy.push('寡婦 27万'); }
+  if(s.student){ dis+=270000; disWhy.push('勤労学生 27万'); }
+  famAll.forEach(f=>{ if(!f.dis) return; const ok = f._sp ? f._inc<=620000 : (FUYO_CODES.includes(f._code)||f._code==='U16'); if(ok){ dis+=DIS_AMT[f.dis]||0; disWhy.push(`${f.name} ${f.dis==='一般'?'障害者':f.dis+'障害者'} ${(DIS_AMT[f.dis]||0)/10000}万`); } });
+  const fuyo=famAll.filter(f=>FUYO_CODES.includes(f._code)).reduce((a,f)=>a+f._amt,0);
+  const tok=famAll.filter(f=>f._code==='B_TOKUTEI_SHINZOKU').reduce((a,f)=>a+f._amt,0);
+  const spAmt=['A_HAIGU','A_TOKUBETSU','SP_HAIGU','SP_TOKUBETSU'].includes(j.sp)?(j.spAmt||0):0;
+  // 保険料（区分ごとの支払額）
+  const life=p.life||[], sum=(cat,age)=>life.filter(x=>x.cat===cat&&(!age||x.age===age)).reduce((a,x)=>a+num(x.amt),0);
+  const ins={gN:sum('general','new'),gO:sum('general','old'),c:sum('care'),pN:sum('pension','new'),pO:sum('pension','old'),
+    qB:(p.quake||[]).filter(x=>x.cat==='quake').reduce((a,x)=>a+num(x.amt),0), qC:(p.quake||[]).filter(x=>x.cat==='oldlong').reduce((a,x)=>a+num(x.amt),0),
+    si:(p.si||[]).reduce((a,x)=>a+num(x.amt),0), siNen:(p.si||[]).filter(x=>/国民年金/.test(x.kind||'')).reduce((a,x)=>a+num(x.amt),0)};
+  const sm=p.small||{}; ins.small=num(sm.kSmall)+num(sm.kCorpDC)+num(sm.kIdeco)+num(sm.kShogai);
+  const u23=famAll.some(f=>!f._sp && f._age!==null && f._age<23 && f._inc<=620000);
+  return {s,j,famAll,deps,dis,disWhy,fuyo,tok,spAmt,ins,u23,pv,ln,
+    expect:{basic:j.basic||0,sp:spAmt,tok,fuyo:fuyo+dis,life:j.life||0,quake:j.quake||0,small:ins.small,si:ins.si,loan:p.loanHas==='yes'?num(ln.amt):0,prevPay:num(pv.pay),prevSI:num(pv.si),prevTax:num(pv.tax)}};
+}
+
+// ===== コード読込（取りまとめ画面と同じ形式） =====
+function fromB64url(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const b=atob(s); const u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+async function decodeBody(kind,body){ const u=fromB64url(body);
+  if(kind==='z'){ const ds=new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw')); return JSON.parse(new TextDecoder().decode(await new Response(ds).arrayBuffer())); }
+  return JSON.parse(new TextDecoder().decode(u)); }
+function extract(text){ const out=[]; const re=/(NCB1|NC1)([zp])\./g; let m;
+  while((m=re.exec(text))){ let i=re.lastIndex, body='';
+    while(i<text.length){ const c=text[i]; if(/[A-Za-z0-9_-]/.test(c)){ body+=c; i++; } else if(/[\s>]/.test(c) && /[\s>]*[A-Za-z0-9_-]/.test(text.slice(i,i+4)) && !/^[\s>]*(NC1|NCB1)/.test(text.slice(i))) i++; else break; }
+    out.push({type:m[1],kind:m[2],body}); re.lastIndex=i; }
+  return out; }
+async function load(text){
+  const codes=extract(text); const msg=$('#loadMsg');
+  if(!codes.length){ msg.className='msg bad'; msg.textContent='まとめコード（NCB1…）が見つかりません。メール本文をそのまま貼り付けてください。'; return; }
+  let added=0, bad=0;
+  for(const c of codes){ try{ const d=await decodeBody(c.kind,c.body);
+      if(c.type==='NCB1'){ co=d.co||co; (d.items||[]).forEach(upsert); added+=(d.items||[]).length; } else { upsert(d); added++; } }catch(e){ bad++; } }
+  msg.className=bad?'msg warn':'msg ok';
+  msg.textContent=`${co?co+'：':''}${items.length}人分を読み込みました。`+(bad?`（${bad}件は壊れていて読めませんでした。経理担当者にもう一度送ってもらってください）`:'');
+  cur=0; save(); renderAll();
+}
+const nkey=s=>String(s||'').normalize('NFKC').replace(/（見本）|\(見本\)/g,'').replace(/\s/g,'');
+function upsert(p){ const k=nkey(p.self?.name)+'|'+(p.self?.birth||''); const i=items.findIndex(x=>nkey(x.self?.name)+'|'+(x.self?.birth||'')===k); if(i>=0) items[i]=p; else items.push(p); }
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify({co,items,done,emp})); }catch(_){} }
+
+// ===== 文字コード =====
+function sjisBytes(str){ if(typeof Encoding==='undefined') return null; return new Uint8Array(Encoding.convert(Encoding.stringToCode(str),{to:'SJIS',from:'UNICODE'})); }
+function blen(str){ let n=0; for(const ch of String(str||'')) n+= /[\x00-\x7f｡-ﾟ]/.test(ch)?1:2; return n; }
+function cutBytes(str,max){ let out='',n=0; for(const ch of String(str||'')){ const w=/[\x00-\x7f｡-ﾟ]/.test(ch)?1:2; if(n+w>max) break; out+=ch; n+=w; } return out; }
+function sjisLost(str){ if(typeof Encoding==='undefined') return []; const lost=[]; for(const ch of new Set(String(str||''))){ const back=Encoding.codeToString(Encoding.convert(Encoding.convert(Encoding.stringToCode(ch),{to:'SJIS',from:'UNICODE'}),{to:'UNICODE',from:'SJIS'})); if(back!==ch) lost.push(ch); } return lost; }
+function splitAddr(a){ a=String(a||'').trim(); if(blen(a)<=40) return [a,'']; const head=cutBytes(a,40); const sp=Math.max(head.lastIndexOf(' '),head.lastIndexOf('　')); const top= sp>8 ? head.slice(0,sp) : head; return [top.trim(), a.slice(top.length).trim()]; }
+function decodeFile(buf){ const u=new Uint8Array(buf); try{ return new TextDecoder('utf-8',{fatal:true}).decode(u).replace(/^﻿/,''); }catch(_){ return new TextDecoder('shift_jis').decode(u); } }
+function parseCSV(text){ const rows=[]; let row=[],f='',q=false; for(let i=0;i<text.length;i++){ const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; }
+    else if(c==='"') q=true; else if(c===','||c==='\t'){ row.push(f); f=''; } else if(c==='\n'){ row.push(f); rows.push(row); row=[]; f=''; } else if(c!=='\r') f+=c; }
+  if(f!==''||row.length){ row.push(f); rows.push(row); } return rows.filter(r=>r.some(v=>v.trim()!=='')); }
+
+// ===== 魔法陣の社員情報（出力CSV）で名寄せ =====
+$('#empFile').addEventListener('change',async e=>{ const file=e.target.files[0]; if(!file) return; const rows=parseCSV(decodeFile(await file.arrayBuffer())); const m=$('#empMsg');
+  const h=rows[0]||[]; const iNo=h.findIndex(x=>/社員\s*No|社員番号/.test(x)), iNm=h.findIndex(x=>x.trim()==='氏名'), iKn=h.findIndex(x=>/カナ|フリガナ/.test(x)), iBd=h.findIndex(x=>/生年月日/.test(x));
+  if(iNm<0){ m.className='msg bad'; m.textContent='「氏名」の列が見つかりません。魔法陣の社員情報を出力したCSVか確認してください。'; return; }
+  emp=rows.slice(1).map(r=>({no:iNo>=0?r[iNo]:'',name:r[iNm],kana:iKn>=0?r[iKn]:'',birth:iBd>=0?r[iBd]:''})).filter(r=>r.name);
+  m.className='msg ok'; m.textContent=`魔法陣の登録社員 ${emp.length}人を読み込みました。`; save(); renderAll(); });
+function matchEmp(p){ if(!emp) return null; const k=nkey(p.self?.name); let hit=emp.find(e=>nkey(e.name)===k); if(!hit && p.self?.kana){ const kk=nkey(p.self.kana); hit=emp.find(e=>e.kana && nkey(e.kana)===kk); } return hit||null; }
+
+// ===== 社員情報CSV =====
+const CSV_HEAD=['社員No.','氏名','氏名(カナ)','生年月日','郵便番号','住所(上段)','住所(下段)','住民税の徴収方法','普通徴収の切替理由(符号)','年調区分','配偶者の有無','世帯主氏名','世帯主続柄','入社年月日'];
+function buildCsv(){
+  const warn=[]; let maxNo=emp?Math.max(0,...emp.map(e=>+e.no||0)):0; let matched=0,newc=0;
+  const rows=items.map(p=>{ const s=p.self||{}, pv=p.prev||{}; const hit=matchEmp(p); let no='', name=s.name||'';
+    if(hit){ no=hit.no; name=hit.name; matched++; } else if(emp){ no=String(++maxNo); newc++; }
+    const [a1,a2]=splitAddr(s.addr); const zip=String(s.zip||'').replace(/[^0-9]/g,'');
+    const jz=p._jz==='toku'?'0':p._jz==='futsu'?'1':'';
+    if(!jz) warn.push(`${s.name}：住民税の徴収方法が未選択です（取りまとめ画面で選んでもらってください）`);
+    if(blen(name)>30) warn.push(`${s.name}：氏名が30バイト（全角15文字）を超えるため、魔法陣で後ろが切れます`);
+    if(blen(a2)>40) warn.push(`${s.name}：住所が長く、下段の40バイトに収まりません`);
+    const lost=sjisLost([name,s.kana,s.addr,s.head].join('')); if(lost.length) warn.push(`${s.name}：「${lost.join('')}」は魔法陣の文字コードにないため「?」になります。読込後に手で直してください`);
+    return [no,name,s.kana||'',(s.birth||'').replace(/-/g,'/'),zip.length===7?zip.slice(0,3)+'-'+zip.slice(3):'',a1,a2,jz,p._jz==='futsu'?(p._jzr||''):'',s.main==='no'?'2':'0',p.sp?'0':'1',s.head||'',cutBytes(s.headRel||'',8),(pv.join||'').replace(/-/g,'/')];
+  });
+  return {rows,warn,matched,newc};
+}
+const csvCell=v=>{ v=String(v??''); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+$('#csvBtn').addEventListener('click',async()=>{
+  const {rows}=buildCsv(); const text=[CSV_HEAD,...rows].map(r=>r.map(csvCell).join(',')).join('\r\n')+'\r\n';
+  const bytes=sjisBytes(text); const m=$('#csvMsg');
+  if(!bytes){ m.className='msg bad'; m.textContent='文字コード変換を読み込めませんでした。ネットにつながった状態で開き直してください。'; return; }
+  try{ await saveFile(`${co||'顧問先'}_魔法陣_社員情報.csv`,bytes,'text/csv'); m.className='msg ok'; m.textContent='保存しました'; }catch(e){ if(e?.code!=='declined'){ m.className='msg bad'; m.textContent='保存できませんでした'; } }
+});
+let dl=null;
+async function saveFile(filename,data,type){
+  if(!dl && window.claude?.use){ try{ dl=await window.claude.use('downloads'); }catch(_){} }
+  if(dl) return dl.save({filename,data});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([data],{type})); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
+}
+
+// ===== 入力シート =====
+const kv=pairs=>'<dl class="kv">'+pairs.filter(Boolean).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${v}</dd>`).join('')+'</dl>';
+const Y=n=>`<span class="big">${yen(n)}</span>`;
+function sheetHTML(p,idx){
+  const a=analyze(p), s=a.s, nm=s.name||'（氏名なし）', hit=matchEmp(p);
+  const self=[s.spDis?'特別障害者':s.dis?'一般の障害者':'', s.single?'ひとり親':s.widow?'寡婦':'', s.student?'勤労学生':''].filter(Boolean);
+  const famRows=a.famAll.map(f=>{ const enter=f._sp||FUYO_CODES.includes(f._code)||f._code==='U16'||f._code==='B_TOKUTEI_SHINZOKU';
+    const kind=f._sp?'配偶者':f._code==='B_TOKUTEI_SHINZOKU'?'特定親族':f._code==='U16'?'16歳未満':FUYO_CODES.includes(f._code)?'扶養親族':'対象外';
+    return `<tr${enter?'':' style="color:var(--muted)"'}><td>${esc(kind)}</td><td>${esc(f.name)}<br><span class="note">${esc(f.kana||'')}</span></td><td>${esc(f._sp?'妻・夫':f.rel)}</td><td>${esc(wareki(f.birth))}</td><td class="num">${yen(f._inc)}</td><td>${esc(LIVE[f.live]||'')}</td><td>${esc(f.dis?(f.dis==='一般'?'一般の障害者':f.dis+'障害者'):'')}</td><td>${enter?'':'入力しない'}</td></tr>`; }).join('');
+  const ins=a.ins, hasIns=ins.gN||ins.gO||ins.c||ins.pN||ins.pO||ins.qB||ins.qC||ins.si||ins.small;
+  const sp=p.sp, tokF=a.famAll.filter(f=>f._code==='B_TOKUTEI_SHINZOKU');
+  const pv=a.pv, hasPrev=num(pv.pay)||num(pv.tax)||pv.name;
+  const ln=a.ln, loan=p.loanHas==='yes';
+  const e=a.expect;
+  return `<article class="sheet" data-i="${idx}">
+  <div class="sheet-head"><div><div class="note">${esc(co)} ／ ${idx+1}人目 / ${items.length}人${hit?` ／ 魔法陣の社員No. ${esc(hit.no)}`:''}</div><div class="nm">${esc(nm)}</div><div class="note">${esc(s.kana||'')}　${esc(wareki(s.birth))}生</div></div>
+    <label class="done-box no-print"><input type="checkbox" data-done="${idx}" ${done[doneKey(p)]?'checked':''}>魔法陣に入力した</label></div>
+  ${s.main==='no'?'<div class="alert">メインの勤務先ではありません（乙欄）。年末調整はしません。</div>':''}
+  ${!p._jz?'<div class="alert">住民税の徴収方法が未選択です。</div>':''}
+  ${s.main==='no'?`<div class="tab"><div class="tt">［社員情報］住民税</div>${kv([['徴収方法',p._jz==='futsu'?'<b>普通徴収</b>':p._jz==='toku'?'特別徴収':'<b style="color:var(--bad)">未選択</b>'],p._jz==='futsu'?['理由',esc((p._jzr||'')+' '+(FUTSU[p._jzr]||''))]:null])}</div></article>`:`
+
+  <div class="tab"><div class="tt">［扶養控除等］タブ</div>
+    ${kv([['年調区分',s.main==='no'?'乙欄':'甲欄'],['配偶者の有無',sp?'有':'無'],['世帯主',esc(s.head||'')+'（'+esc(s.headRel||'')+'）'],self.length?['本人の区分','<b>'+esc(self.join('・'))+'</b>']:null])}
+    ${a.famAll.length?`<div class="tbl"><table><thead><tr><th>欄</th><th>氏名</th><th>続柄</th><th>生年月日</th><th class="num">所得金額</th><th>同居区分</th><th>障害者区分</th><th></th></tr></thead><tbody>${famRows}</tbody></table></div>`:'<div class="note">家族の申告はありません</div>'}
+  </div>
+
+  <div class="tab"><div class="tt">［基礎控除・配偶者控除等］タブ</div>
+    ${kv([['給与所得 収入金額',Y(s.wage)+' <span class="note">（見積額。魔法陣は給与データの実額で計算します）</span>'],num(s.other)?['給与所得以外の所得の合計額',Y(s.other)]:null])}
+    ${sp?kv([['配偶者',esc(sp.name)+'（'+esc(wareki(sp.birth))+'生）'],['配偶者の給与 収入金額',Y(sp.wage)],num(sp.other)?['配偶者の給与以外の所得',Y(sp.other)]:null,['住所',sp.live==='same'?'同居':esc(sp.addr||LIVE[sp.live]||'')]]):'<div class="note">配偶者控除等申告書：申告なし（「申告書の提出がないため適用しない」にチェック）</div>'}
+    ${tokF.length?tokF.map(f=>kv([['特定親族',esc(f.name)+'（'+esc(wareki(f.birth))+'生）'],['給与 収入金額',Y(f.wage)],num(f.other)?['給与以外の所得',Y(f.other)]:null])).join(''):''}
+  </div>
+
+  <div class="tab ${hasIns?'':'skip'}"><div class="tt">［保険料控除等］タブ</div>
+    ${hasIns?kv([ins.gN?['一般 新保険料等 A',Y(ins.gN)]:null, ins.gO?['一般 旧保険料等 B',Y(ins.gO)]:null, ins.c?['介護医療 C',Y(ins.c)]:null, ins.pN?['個人年金 新 D',Y(ins.pN)]:null, ins.pO?['個人年金 旧 E',Y(ins.pO)]:null, ins.qB?['地震',Y(ins.qB)]:null, ins.qC?['旧長期',Y(ins.qC)]:null, ins.si?['社会保険料控除（申告分）',Y(ins.si)]:null, ins.siNen?['うち国民年金保険料等',Y(ins.siNen)]:null, ins.small?['小規模企業共済等掛金控除（申告分）',Y(ins.small)]:null]):'<div>申告なし</div>'}
+    ${a.u23&&(ins.gN)?'<div class="alert">23歳未満の扶養親族がいます。令和8年の特例で一般の生命保険料（新）の上限が6万円になります。魔法陣の生命保険料控除が下の金額と同じか確認してください。</div>':''}
+  </div>
+
+  <div class="tab ${loan?'':'skip'}"><div class="tt">［住宅借入金等特別控除］</div>
+    ${loan?kv([['居住開始年月日',esc(ln.start||'')],['年末残高',Y(ln.bal)],['控除額（申告書の金額）',Y(ln.amt)]]):p.loanHas==='first'?'<div>1年目のため確定申告（年末調整では入力しない）</div>':'<div>申告なし</div>'}
+  </div>
+
+  <div class="tab ${hasPrev?'':'skip'}"><div class="tt">［前職分］</div>
+    ${hasPrev?kv([['前職の会社',esc(pv.name||'')],['退職日',esc(pv.quit||'')],['支払金額',Y(pv.pay)],['社会保険料',Y(pv.si)],['源泉徴収税額',Y(pv.tax)],['源泉徴収票',pv.slip==='wait'?'<b style="color:var(--bad)">未着（届いてから入力）</b>':'あり']]):'<div>なし</div>'}
+  </div>
+
+  <div class="tab"><div class="tt">［社員情報］住民税</div>
+    ${kv([['徴収方法',p._jz==='futsu'?'<b>普通徴収</b>':p._jz==='toku'?'特別徴収':'<b style="color:var(--bad)">未選択</b>'],p._jz==='futsu'?['理由',esc((p._jzr||'')+' '+(FUTSU[p._jzr]||''))]:null])}
+  </div>
+
+  <div class="expect"><div class="tt" style="font-weight:700">入力後、魔法陣の計算がこの金額になればOK</div>
+    <div class="tbl" style="border:none"><table><tbody>
+      ${[['基礎控除',e.basic,'見積額で計算。給与の実額で変わることがあります'],['配偶者（特別）控除',e.sp,''],['特定親族特別控除',e.tok,''],['扶養控除・障害者控除等',e.fuyo,a.disWhy.join('／')],['生命保険料控除',e.life,''],['地震保険料控除',e.quake,'']].filter(r=>r[1]||r[0]==='基礎控除').map(r=>`<tr><td>${r[0]}</td><td class="num">${yen(r[1])}</td><td class="note">${esc(r[2])}</td></tr>`).join('')}
+    </tbody></table></div></div>
+  ${p.memo?`<div class="alert">従業員からの連絡：${esc(p.memo)}</div>`:''}
+  </article>`}`;
+}
+const doneKey=p=>co+'|'+nkey(p.self?.name);
+function renderSheets(){
+  const sh=$('#sheets');
+  if(!items.length){ sh.innerHTML=''; return; }
+  if(cur>=items.length) cur=0;
+  sh.innerHTML=items.map((p,i)=>sheetHTML(p,i)).join('');
+  sh.querySelectorAll('.sheet').forEach((el,i)=>{ el.classList.toggle('no-print-hide',i!==cur); el.hidden=i!==cur; });
+  sh.querySelectorAll('[data-done]').forEach(cb=>cb.addEventListener('change',()=>{ const p=items[+cb.dataset.done]; done[doneKey(p)]=cb.checked; save(); renderRoster(); }));
+  renderRoster();
+}
+function renderRoster(){
+  const n=items.filter(p=>done[doneKey(p)]).length;
+  $('#progress').textContent=`入力済み ${n} / ${items.length}人`;
+  $('#roster').innerHTML=items.map((p,i)=>`<button data-go="${i}" class="${i===cur?'cur ':''}${done[doneKey(p)]?'done':''}">${done[doneKey(p)]?'✓ ':''}${esc(p.self?.name||'?')}</button>`).join('');
+  $('#roster').querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.go)));
+}
+function go(i){ cur=Math.max(0,Math.min(items.length-1,i)); document.querySelectorAll('.sheet').forEach((el,k)=>el.hidden=k!==cur); renderRoster(); }
+$('#prevBtn').addEventListener('click',()=>go(cur-1));
+$('#nextBtn').addEventListener('click',()=>go(cur+1));
+$('#printBtn').addEventListener('click',()=>{ document.querySelectorAll('.sheet').forEach(el=>el.hidden=false); window.print(); setTimeout(()=>go(cur),300); });
+
+// ===== 照合 =====
+const CHECKS=[
+  {k:'sp',label:'配偶者（特別）控除',m:h=>/配偶者/.test(h)&&/控除/.test(h)&&!/扶養/.test(h),strict:true},
+  {k:'tok',label:'特定親族特別控除',m:h=>/特定親族/.test(h),strict:true},
+  {k:'fuyo',label:'扶養控除・障害者控除等',m:h=>/扶養控除/.test(h),strict:true},
+  {k:'life',label:'生命保険料控除',m:h=>/生命保険料控除/.test(h),strict:true},
+  {k:'quake',label:'地震保険料控除',m:h=>/地震保険料控除/.test(h),strict:true},
+  {k:'basic',label:'基礎控除',m:h=>/基礎控除/.test(h),strict:false,why:'見積額と給与の実額の差で変わることがあります。合計所得が489万円・655万円の境目を確認'},
+  {k:'small',label:'小規模企業共済等掛金控除',m:h=>/小規模/.test(h),strict:'ge',why:'給与から天引きしている掛金（企業型DCなど）があれば魔法陣の方が多くなります'},
+  {k:'loan',label:'住宅借入金等特別控除',m:h=>/住宅借入金/.test(h),strict:'le',why:'所得税額が控除額より少ないと、魔法陣の方が少なくなります（残りは住民税で控除）'},
+  {k:'prevPay',label:'前職 支払金額',m:(h,after)=>after&&/支払金額/.test(h),strict:true,prev:true},
+  {k:'prevSI',label:'前職 社会保険料',m:(h,after)=>after&&/社会保険料/.test(h)&&!/控除/.test(h),strict:true,prev:true},
+  {k:'prevTax',label:'前職 源泉徴収税額',m:(h,after)=>after&&/源泉徴収税額/.test(h),strict:true,prev:true},
+];
+$('#ichiranFile').addEventListener('change',async e=>{ const file=e.target.files[0]; if(!file) return; runCheck(parseCSV(decodeFile(await file.arrayBuffer()))); e.target.value=''; });
+function runCheck(rows){
+  const m=$('#checkMsg'), out=$('#checkResult');
+  // 見出し行（1〜3行）を探す：「氏名」を含む行
+  let hi=rows.findIndex(r=>r.some(v=>v.trim()==='氏名')); if(hi<0||hi>4){ m.className='msg bad'; m.textContent='「氏名」の見出しが見つかりません。魔法陣の「年末調整一覧」を出力したCSVか確認してください。'; out.innerHTML=''; return; }
+  // 2段見出しの場合は上の段と結合
+  const top=hi>0?rows[hi-1]:[]; let parent=''; const heads=rows[hi].map((v,i)=>{ if(top[i]&&top[i].trim()) parent=top[i].trim(); return (parent&&!v.includes(parent)?parent:'')+v.trim(); });
+  // さらに下の行も見出しかどうか（数字がない行）
+  let start=hi+1; if(rows[start] && !rows[start].some(v=>/\d/.test(v))){ rows[start].forEach((v,i)=>{ if(v.trim()) heads[i]=heads[i]+v.trim(); }); start++; }
+  const iName=heads.findIndex(h=>/氏名$/.test(h)||h==='氏名');
+  const prevIdx=heads.findIndex(h=>/前職/.test(h));
+  const col={}; CHECKS.forEach(c=>{ col[c.k]=heads.findIndex((h,i)=>c.m(h, c.prev ? (prevIdx>=0 && i>=prevIdx) : true) && !(c.prev?false:(prevIdx>=0&&i>prevIdx&&/支払金額|社会保険料$|源泉徴収税額/.test(h)))); });
+  const data=rows.slice(start).filter(r=>r[iName]&&r[iName].trim());
+  const found=CHECKS.filter(c=>col[c.k]>=0), missing=CHECKS.filter(c=>col[c.k]<0);
+  let errs=0, warns=0; const res=[];
+  const notIn=[];
+  items.forEach(p=>{ const a=analyze(p); if(p.self?.main==='no') return; const r=data.find(d=>nkey(d[iName])===nkey(p.self?.name));
+    if(!r){ notIn.push(p.self?.name); return; }
+    const lines=[]; found.forEach(c=>{ const exp=a.expect[c.k]||0, act=num(r[col[c.k]]); if(exp===act) return;
+      let lv; if(c.strict===true) lv='bad'; else if(c.strict==='ge') lv= act>exp?'warn':'bad'; else if(c.strict==='le') lv= act<exp?'warn':'bad'; else lv='warn';
+      if(lv==='bad') errs++; else warns++;
+      lines.push({lv,label:c.label,exp,act,why:c.why||''}); });
+    res.push({name:p.self?.name,lines});
+  });
+  const extra=data.filter(d=>!items.some(p=>nkey(p.self?.name)===nkey(d[iName]))).map(d=>d[iName]);
+  m.className= errs||notIn.length?'msg bad':warns?'msg warn':'msg ok';
+  m.textContent= errs||notIn.length ? `要確認：差異 ${errs}件${notIn.length?`、魔法陣に見つからない人 ${notIn.length}人`:''}${warns?`（ほかに参考 ${warns}件）`:''}` : warns ? `入力ミスは見つかりませんでした。参考の差異が ${warns}件あります（理由を確認してください）` : `全員一致しました（${res.length}人 × ${found.length}項目）`;
+  out.innerHTML=`<div class="tbl"><table><thead><tr><th>従業員</th><th>項目</th><th class="num">申告書から計算</th><th class="num">魔法陣</th><th>判定・考えられる理由</th></tr></thead><tbody>${
+    res.map(r=> r.lines.length? r.lines.map((l,k)=>`<tr>${k===0?`<td rowspan="${r.lines.length}">${esc(r.name)}</td>`:''}<td>${esc(l.label)}</td><td class="num">${yen(l.exp)}</td><td class="num">${yen(l.act)}</td><td><span class="chip c-${l.lv}">${l.lv==='bad'?'入力を確認':'参考'}</span>${esc(l.why)}</td></tr>`).join('') : `<tr><td>${esc(r.name)}</td><td colspan="3" class="note">全項目一致</td><td><span class="chip c-ok">OK</span></td></tr>`).join('')
+  }${notIn.map(n=>`<tr><td>${esc(n)}</td><td colspan="3">魔法陣の一覧に見つかりません</td><td><span class="chip c-bad">確認</span>未登録か、氏名の書き方の違い</td></tr>`).join('')}${extra.map(n=>`<tr><td>${esc(n)}</td><td colspan="3">申告データがありません</td><td><span class="chip c-warn">参考</span>退職者・申告未提出・乙欄の人など</td></tr>`).join('')}</tbody></table></div>
+  <p class="note">照合した項目：${found.map(c=>c.label).join('、')}${missing.length?`<br>CSVに見つからなかった項目：${missing.map(c=>c.label).join('、')}（魔法陣の版によって見出しが違う場合があります）`:''}<br>社会保険料控除は給与天引き分が入るため照合していません。</p>`;
+}
+
+// ===== 全体描画 =====
+function renderAll(){
+  const has=items.length>0;
+  $('#secCsv').hidden=!has; $('#secSheet').hidden=!has; $('#secCheck').hidden=!has;
+  if(!has) return;
+  const {warn,matched,newc}=buildCsv();
+  const unsel=items.filter(p=>!p._jz).length, futsu=items.filter(p=>p._jz==='futsu').length, otsu=items.filter(p=>p.self?.main==='no').length;
+  $('#csvSummary').innerHTML=`<div class="row"><span class="chip c-ok">${items.length}人</span>${futsu?`<span class="chip c-warn">普通徴収 ${futsu}人</span>`:''}${otsu?`<span class="chip c-none">乙欄 ${otsu}人</span>`:''}${unsel?`<span class="chip c-bad">住民税未選択 ${unsel}人</span>`:''}${emp?`<span class="chip c-ok">魔法陣と一致 ${matched}人</span><span class="chip c-warn">新規 ${newc}人</span>`:''}</div>`;
+  $('#keyHint').textContent= emp ? '「社員No.」及び「氏名」が一致する場合' : '「氏名」が一致する場合';
+  $('#csvWarn').innerHTML= warn.length?`<div class="msg warn">${warn.map(esc).join('<br>')}</div>`:'';
+  renderSheets();
+}
+$('#loadBtn').addEventListener('click',()=>load($('#paste').value));
+$('#clearBtn').addEventListener('click',()=>{ items=[]; co=''; emp=null; $('#paste').value=''; $('#loadMsg').innerHTML=''; $('#loadMsg').className=''; $('#checkResult').innerHTML=''; $('#checkMsg').innerHTML=''; $('#checkMsg').className=''; save(); renderAll(); });
+$('#sampleBtn').addEventListener('click',()=>{
+  co='株式会社〇〇商事（見本）'; items=[];
+  upsert({self:{name:'佐藤 一郎（見本）',kana:'サトウ イチロウ',birth:'1985-04-12',zip:'150-0011',addr:'東京都渋谷区東1-2-3 〇〇マンション101',head:'佐藤 一郎',headRel:'本人',main:'yes',wage:6000000,other:0},
+    sp:{rel:'配偶者',name:'佐藤 花子',kana:'サトウ ハナコ',birth:'1988-09-03',wage:1000000,other:0,live:'same'},
+    fam:[{rel:'子',name:'佐藤 太郎',kana:'サトウ タロウ',birth:'2002-04-01',wage:3000000,other:0,live:'apart',addr:'東京都品川区〇〇1-1'},{rel:'子',name:'佐藤 次郎',kana:'サトウ ジロウ',birth:'2006-05-20',wage:1500000,other:0,live:'same'},{rel:'子',name:'佐藤 ゆい',kana:'サトウ ユイ',birth:'2016-07-01',wage:0,other:0,live:'same',dis:'一般'}],
+    life:[{co:'〇〇生命',kind:'終身保険',cat:'general',age:'new',amt:100000},{co:'△△生命',kind:'医療保険',cat:'care',age:'new',amt:48000}],quake:[{cat:'quake',amt:15000}],si:[],small:{kIdeco:144000},loanHas:'no',
+    j:{sp:'A_HAIGU',spAmt:380000,fam:['NONE','B_TOKUTEI_SHINZOKU','U16'],famAmt:[0,630000,0],basic:1040000,k1:'A',total:4360000,life:87000,quake:15000,si:0,small:144000},_jz:'toku'});
+  upsert({self:{name:'鈴木 ゆい（見本）',kana:'スズキ ユイ',birth:'1999-11-30',zip:'1700013',addr:'東京都豊島区東池袋9-9-9',head:'鈴木 次郎',headRel:'父',main:'yes',wage:3200000,other:0},
+    fam:[],life:[],quake:[],si:[{kind:'国民年金',amt:105000}],small:{},loanHas:'no',prev:{join:'2026-07-01',name:'△△株式会社',quit:'2026-06-30',slip:'have',pay:1500000,si:220000,tax:31000},
+    j:{fam:[],famAmt:[],basic:1040000,k1:'A',total:2160000,life:0,quake:0,si:105000,small:0},_jz:'futsu',_jzr:'普F'});
+  upsert({self:{name:'田中 次郎（見本）',kana:'タナカ ジロウ',birth:'1960-02-10',zip:'',addr:'',head:'田中 次郎',headRel:'本人',main:'no',wage:900000},fam:[],life:[],quake:[],si:[],small:{},j:{fam:[],famAmt:[]},_jz:'futsu',_jzr:'普B'});
+  $('#loadMsg').className='msg ok'; $('#loadMsg').textContent=`${co}：見本 ${items.length}人分を読み込みました。`; cur=0; save(); renderAll();
+});
+try{ const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(d){ co=d.co||''; items=d.items||[]; done=d.done||{}; emp=d.emp||null; } }catch(_){}
+if(window.claude) $('#printBtn').hidden=true;
+renderAll();
+window.__mj={analyze,buildCsv,runCheck,parseCSV,get items(){return items;}};
+})();
+</script>
+
+</body></html>
