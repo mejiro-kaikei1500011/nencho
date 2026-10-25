@@ -6,6 +6,7 @@
 <title>魔法陣 入力サポート</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/encoding-japanese@2.2.0/encoding.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
 /* 事務所の作業机：上から「読込 → CSV → 入力シート → 照合」の4段。入力シートは魔法陣のタブ順に並べる */
 :root{
@@ -138,6 +139,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
       <button id="nextBtn" class="small">次の人 →</button>
       <span id="progress" class="note"></span>
       <button id="printBtn" class="small">全員分を印刷</button>
+    </div>
+    <div class="row" style="border:1px dashed var(--line);border-radius:8px;padding:10px 12px">
+      <button class="primary" id="xlsxBtn">入力チェック表（Excel）を保存</button>
+      <span class="note">全員分の扶養・保険・前職などを魔法陣のタブ順に1人1行で並べたExcelです。入力したセルを色塗りして進められます。</span>
+      <span id="xlsxMsg"></span>
     </div>
     <div class="roster" id="roster"></div>
   </div>
@@ -427,7 +433,97 @@ $('#sampleBtn').addEventListener('click',()=>{
 });
 try{ const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(d){ co=d.co||''; items=d.items||[]; done=d.done||{}; emp=d.emp||null; } }catch(_){}
 renderAll();
-window.__mj={analyze,buildCsv,runCheck,parseCSV,get items(){return items;}};
+// ===== 入力チェック表（Excel） =====
+async function buildWorkbook(){
+  const wb=new ExcelJS.Workbook(); wb.creator='MEJIRO会計事務所';
+  const thin={style:'thin',color:{argb:'FFB8C4C1'}};
+  const border={top:thin,left:thin,bottom:thin,right:thin};
+  const fill=c=>({type:'pattern',pattern:'solid',fgColor:{argb:c}});
+  const G={base:'FFDCE6E4',fuyo:'FFDDEBF7',kiso:'FFE2EFDA',ins:'FFFFF2CC',loan:'FFFCE4D6',prev:'FFEDE2F6',jz:'FFF2F2F2',exp:'FFD9E1F2',chk:'FFFFFFFF'};
+  const v0=n=>num(n)?num(n):'';
+  // --- 使い方 ---
+  const w0=wb.addWorksheet('使い方');
+  [[`${co||'顧問先'}　令和8年分 年末調整　魔法陣 入力チェック表`],[''],['【使い方】'],
+   ['①「入力チェック表」は1人1行。列は魔法陣の個別入力のタブ順です（見出しの色＝タブ）'],
+   ['② 空欄は申告なし。値が入っているセルだけ魔法陣に入力し、入力したら黄色に塗ります'],
+   ['③ 家族は「家族」シート、保険は「保険明細」シートで1件ずつ確認できます（証明書との照合用）'],
+   ['④ 全部入力したら、魔法陣の年末調整一覧CSVを入力サポートで照合し、一致した行を緑に塗ります'],
+   ['⑤「魔法陣の計算がこの金額ならOK」の列は、申告書から計算した控除額です'],[''],
+   ['【色のルール（おすすめ）】'],['黄色：魔法陣に入力した'],['緑：照合で一致した'],['赤：要確認（証明書と違う・未着など）']]
+   .forEach(r=>w0.addRow(r));
+  w0.getRow(1).font={bold:true,size:14}; w0.getColumn(1).width=90;
+  w0.getCell('A11').fill=fill('FFFFFF00'); w0.getCell('A12').fill=fill('FF92D050'); w0.getCell('A13').fill=fill('FFFF7C80');
+  // --- 入力チェック表 ---
+  const groups=[
+    ['基本',G.base,['No.','社員No.','氏名','フリガナ','生年月日','年調区分']],
+    ['［扶養控除等］タブ',G.fuyo,['配偶者の有無','世帯主','世帯主の続柄','本人の区分','入力する家族（人）']],
+    ['［基礎控除・配偶者控除等］タブ',G.kiso,['給与収入（見積）','給与以外の所得','配偶者 氏名','配偶者 生年月日','配偶者 給与収入','配偶者 その他所得','特定親族 氏名','特定親族 給与収入']],
+    ['［保険料控除等］タブ',G.ins,['一般 新 A','一般 旧 B','介護医療 C','個人年金 新 D','個人年金 旧 E','地震','旧長期','社会保険料（申告分）','うち国民年金','小規模共済等（申告分）']],
+    ['住宅借入金',G.loan,['居住開始日','年末残高','控除額']],
+    ['前職分',G.prev,['前職の会社','退職日','支払金額','社会保険料','源泉徴収税額','源泉徴収票']],
+    ['住民税',G.jz,['徴収方法','普通徴収の理由']],
+    ['魔法陣の計算がこの金額ならOK',G.exp,['基礎控除','配偶者（特別）控除','特定親族特別控除','扶養控除・障害者控除等','生命保険料控除','地震保険料控除']],
+    ['確認',G.chk,['入力済','照合OK','要確認・メモ']]];
+  const ws=wb.addWorksheet('入力チェック表',{views:[{state:'frozen',xSplit:3,ySplit:2}]});
+  const r1=[],r2=[],gfill=[]; groups.forEach(([g,c,cols])=>cols.forEach((h,i)=>{ r1.push(i===0?g:''); r2.push(h); gfill.push(c); }));
+  ws.addRow(r1); ws.addRow(r2);
+  let c0=1; groups.forEach(([g,c,cols])=>{ if(cols.length>1) ws.mergeCells(1,c0,1,c0+cols.length-1); c0+=cols.length; });
+  [1,2].forEach(r=>ws.getRow(r).eachCell({includeEmpty:true},(cell,ci)=>{ cell.fill=fill(gfill[ci-1]); cell.font={bold:true}; cell.border=border; cell.alignment={vertical:'middle',horizontal:'center',wrapText:true}; }));
+  ws.getRow(2).height=34;
+  items.forEach((p,i)=>{ const a=analyze(p), s=a.s, ins=a.ins, e=a.expect, pv=a.pv, ln=a.ln, hit=matchEmp(p), sp=p.sp, tokF=a.famAll.filter(f=>f._code==='B_TOKUTEI_SHINZOKU');
+    const nEnter=a.famAll.filter(f=>f._sp||FUYO_CODES.includes(f._code)||f._code==='U16'||f._code==='B_TOKUTEI_SHINZOKU').length;
+    const selfK=[s.spDis?'特別障害者':s.dis?'障害者':'', s.single?'ひとり親':s.widow?'寡婦':'', s.student?'勤労学生':''].filter(Boolean).join('・');
+    const loan=p.loanHas==='yes';
+    const row=ws.addRow([i+1,hit?hit.no:'',s.name||'',s.kana||'',wareki(s.birth),s.main==='no'?'乙欄':'甲欄',
+      sp?'有':'無',s.head||'',s.headRel||'',selfK,nEnter||'',
+      v0(s.wage),v0(s.other),sp?sp.name:'',sp?wareki(sp.birth):'',sp?v0(sp.wage):'',sp?v0(sp.other):'',tokF.map(f=>f.name).join('、'),tokF.length?tokF.reduce((t,f)=>t+num(f.wage),0):'',
+      v0(ins.gN),v0(ins.gO),v0(ins.c),v0(ins.pN),v0(ins.pO),v0(ins.qB),v0(ins.qC),v0(ins.si),v0(ins.siNen),v0(ins.small),
+      loan?(ln.start||''):(p.loanHas==='first'?'1年目→確定申告':''),loan?v0(ln.bal):'',loan?v0(ln.amt):'',
+      pv.name||'',pv.quit||'',v0(pv.pay),v0(pv.si),v0(pv.tax),pv.slip==='wait'?'未着':pv.slip==='have'?'あり':'',
+      p._jz==='futsu'?'普通徴収':p._jz==='toku'?'特別徴収':'未選択',p._jz==='futsu'?((p._jzr||'')+' '+(FUTSU[p._jzr]||'')):'',
+      e.basic||'',v0(e.sp),v0(e.tok),v0(e.fuyo),v0(e.life),v0(e.quake),
+      '','',[p.memo?'連絡：'+p.memo:'',a.u23&&ins.gN?'23歳未満の扶養親族あり（生保の特例）':'',pv.slip==='wait'?'前職の源泉徴収票 未着':'',!p._jz?'住民税 未選択':''].filter(Boolean).join('／')]);
+    row.eachCell({includeEmpty:true},(cell,ci)=>{ cell.border=border; cell.alignment={vertical:'top',wrapText:ci>=r2.length}; if(typeof cell.value==='number' && ci>2) cell.numFmt='#,##0'; });
+    if(s.main==='no') row.eachCell({includeEmpty:true},cell=>{ cell.font={color:{argb:'FF8A8A8A'}}; });
+    if(pv.slip==='wait'||!p._jz) row.getCell(r2.length).font={color:{argb:'FFC00000'},bold:true};
+  });
+  const widths={'No.':5,'社員No.':7,'氏名':16,'フリガナ':16,'生年月日':17,'配偶者 生年月日':17,'要確認・メモ':40,'普通徴収の理由':22,'前職の会社':16,'配偶者 氏名':14,'特定親族 氏名':14,'世帯主':12};
+  r2.forEach((h,i)=>ws.getColumn(i+1).width=widths[h]||12);
+  ws.autoFilter={from:{row:2,column:1},to:{row:2,column:r2.length}};
+  // --- 家族 ---
+  const wf=wb.addWorksheet('家族',{views:[{state:'frozen',ySplit:1}]});
+  const fh=['従業員','欄','氏名','フリガナ','続柄','生年月日','所得金額（魔法陣に入力）','給与収入','その他所得','同居区分','障害者区分','魔法陣に','入力済'];
+  wf.addRow(fh);
+  items.forEach(p=>analyze(p).famAll.forEach(f=>{ const enter=f._sp||FUYO_CODES.includes(f._code)||f._code==='U16'||f._code==='B_TOKUTEI_SHINZOKU';
+    const kind=f._sp?'配偶者':f._code==='B_TOKUTEI_SHINZOKU'?'特定親族':f._code==='U16'?'16歳未満':f._code==='B_TOKUTEI_FUYO'?'特定扶養':f._code==='B_ROJIN'?'老人扶養':f._code==='B_FUYO'?'一般扶養':'対象外';
+    const r=wf.addRow([p.self?.name||'',kind,f.name||'',f.kana||'',f._sp?'配偶者':f.rel||'',wareki(f.birth),f._inc,v0(f.wage),v0(f.other),LIVE[f.live]||'',f.dis?(f.dis==='一般'?'障害者':f.dis+'障害者'):'',enter?'入力する':'入力しない','']);
+    r.eachCell({includeEmpty:true},(cell,ci)=>{ cell.border=border; if(typeof cell.value==='number') cell.numFmt='#,##0'; if(!enter) cell.font={color:{argb:'FF8A8A8A'}}; }); }));
+  wf.getRow(1).eachCell(c=>{ c.fill=fill(G.fuyo); c.font={bold:true}; c.border=border; c.alignment={wrapText:true,vertical:'middle'}; });
+  [16,10,16,16,8,15,14,12,12,9,12,10,8].forEach((w,i)=>wf.getColumn(i+1).width=w);
+  wf.autoFilter={from:{row:1,column:1},to:{row:1,column:fh.length}};
+  // --- 保険明細 ---
+  const wi=wb.addWorksheet('保険明細',{views:[{state:'frozen',ySplit:1}]});
+  const ih=['従業員','種類','魔法陣の欄','保険会社・支払先','保険の種類','契約者・負担者','受取人','金額','証明書と一致'];
+  wi.addRow(ih);
+  const LC={general:'一般',care:'介護医療',pension:'個人年金'};
+  items.forEach(p=>{ const n=p.self?.name||'';
+    (p.life||[]).forEach(x=>wi.addRow([n,'生命保険',x.cat==='care'?'介護医療 C':(LC[x.cat]||'')+' '+(x.age==='old'?'旧':'新')+' '+(x.cat==='general'?(x.age==='old'?'B':'A'):(x.age==='old'?'E':'D')),x.co||'',x.kind||'',x.holder||'',x.payee||'',num(x.amt),'']));
+    (p.quake||[]).forEach(x=>wi.addRow([n,'地震保険',x.cat==='oldlong'?'旧長期':'地震',x.co||'',x.kind||'',x.holder||'','',num(x.amt),'']));
+    (p.si||[]).forEach(x=>wi.addRow([n,'社会保険料','社会保険料（申告分）'+(/国民年金/.test(x.kind||'')?'・国民年金':''),x.payto||'',x.kind||'',x.who||'','',num(x.amt),'']));
+    const sm=p.small||{}; [['小規模企業共済',sm.kSmall],['企業型DC',sm.kCorpDC],['iDeCo',sm.kIdeco],['心身障害者扶養共済',sm.kShogai]].forEach(([k,v])=>{ if(num(v)) wi.addRow([n,'小規模共済等','小規模共済等（申告分）','',k,'','',num(v),'']); }); });
+  wi.eachRow((r,ri)=>r.eachCell({includeEmpty:true},(cell,ci)=>{ cell.border=border; if(ri===1){ cell.fill=fill(G.ins); cell.font={bold:true}; } else if(ci===8) cell.numFmt='#,##0'; }));
+  [16,11,20,18,16,14,14,11,10].forEach((w,i)=>wi.getColumn(i+1).width=w);
+  wi.autoFilter={from:{row:1,column:1},to:{row:1,column:ih.length}};
+  return wb;
+}
+$('#xlsxBtn').addEventListener('click',async()=>{ const m=$('#xlsxMsg');
+  if(typeof ExcelJS==='undefined'){ m.className='msg bad'; m.textContent='Excelの作成機能を読み込めませんでした。ネットにつながった状態で開き直してください。'; return; }
+  try{ const wb=await buildWorkbook(); const buf=await wb.xlsx.writeBuffer();
+    await saveFile(`${co||'顧問先'}_魔法陣_入力チェック表.xlsx`,new Uint8Array(buf),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); m.className='msg ok'; m.textContent='保存しました'; }
+  catch(e){ if(e?.code!=='declined'){ m.className='msg bad'; m.textContent='保存できませんでした：'+(e?.message||e); } }
+});
+
+window.__mj={buildWorkbook,analyze,buildCsv,runCheck,parseCSV,get items(){return items;}};
 })();
 </script>
 </body>
