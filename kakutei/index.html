@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>確定申告 ヒアリング（試作）</title>
+<style>
+  body { font-family: "Hiragino Sans","Yu Gothic",sans-serif; margin:0; background:#f5f5f2; color:#222; line-height:1.6; }
+  .wrap { max-width:520px; margin:0 auto; padding:16px; }
+  h1 { font-size:18px; margin:8px 0 4px; }
+  h2 { font-size:15px; border-left:4px solid #3a6; padding-left:8px; margin:20px 0 8px; }
+  .card { background:#fff; border-radius:10px; padding:12px 14px; margin-bottom:12px; box-shadow:0 1px 2px rgba(0,0,0,.06); }
+  .q { margin:10px 0 4px; font-weight:600; font-size:14px; }
+  .note { font-size:12px; color:#666; }
+  .banner { background:#fff7e0; border:1px solid #e8c96a; border-radius:8px; padding:8px 10px; font-size:13px; }
+  label.opt { display:inline-block; margin-right:14px; font-size:14px; padding:4px 0; }
+  input[type=text], input[type=number], select { width:100%; box-sizing:border-box; padding:8px; font-size:15px; border:1px solid #bbb; border-radius:6px; margin-top:4px; }
+  .hidden { display:none; }
+  button { width:100%; padding:12px; font-size:16px; border:0; border-radius:8px; background:#3a6; color:#fff; margin-top:8px; }
+  button.sub { background:#888; }
+  .code { font-family:monospace; font-size:18px; background:#eef6ee; padding:10px; border-radius:6px; word-break:break-all; text-align:center; }
+  ul { padding-left:18px; margin:6px 0; font-size:14px; }
+  .step { display:none; }
+  .step.on { display:block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>確定申告（令和8年分）ヒアリング</h1>
+  <div class="note" id="custLine"></div>
+  <div class="banner" style="margin-top:8px">
+    回答期限：<b>1月末</b>（医療費以外の資料）／<b>2月中旬</b>（医療費通知を含む資料）。<br>
+    回答はこの画面に入力したら、最後に表示される回答コードを控え、資料の写真と一緒にメールしてください。
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step on" id="s1">
+    <h2>1. 前年からの変化</h2>
+    <div class="card" id="chg"></div>
+    <h2>2. 今年（令和8年）の収入</h2>
+    <div class="card" id="inc"></div>
+    <button onclick="go(2)">次へ</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="s2">
+    <h2>3. 控除</h2>
+    <div class="card" id="ded"></div>
+    <button class="sub" onclick="go(1)">戻る</button>
+    <button onclick="go(3)">次へ</button>
+  </div>
+
+  <!-- STEP 3 (事業・不動産のみ) -->
+  <div class="step" id="s3">
+    <h2>4. 事業・不動産</h2>
+    <div class="card" id="biz"></div>
+    <button class="sub" onclick="go(2)">戻る</button>
+    <button onclick="go(4)">次へ</button>
+  </div>
+
+  <!-- STEP 4 結果 -->
+  <div class="step" id="s4">
+    <h2>5. 写真を送る資料一覧</h2>
+    <div class="card"><ul id="docs"></ul>
+      <div class="note">医療費通知は1〜2月に届きます。届き次第送ってください。</div>
+    </div>
+    <h2>回答コード</h2>
+    <div class="card">
+      <div class="code" id="ans"></div>
+      <div class="note">このコードをメールの件名に入れてください。</div>
+      <button onclick="mail()">メールを作成（mejiro.accounting@focas.work）</button>
+      <div class="note" style="margin-top:8px">資料の写真には個人番号（マイナンバー）が写らないようにしてください。</div>
+    </div>
+    <button class="sub" onclick="go(3)">戻る</button>
+  </div>
+</div>
+
+<script>
+// 顧客コードは URL の #k顧客コード から取得
+const m = location.hash.match(/#k(.+)$/);
+const cust = m ? m[1] : "(未指定)";
+document.getElementById("custLine").textContent = "顧客コード：" + cust;
+
+const YN = (name) => `<label class="opt"><input type="radio" name="${name}" value="有"> 有</label><label class="opt"><input type="radio" name="${name}" value="無" checked> 無</label>`;
+const row = (q, name) => `<div class="q">${q}</div>${YN(name)}`;
+
+document.getElementById("chg").innerHTML =
+  row("住所が変わりましたか（前年から）", "moved") +
+  row("家族（結婚・出産・同居・別居など）に変化がありましたか", "family") +
+  row("勤務先が変わりましたか", "job") +
+  row("開業・廃業しましたか", "startstop");
+
+document.getElementById("inc").innerHTML =
+  row("給与（会社員）", "salary") +
+  row("事業所得（個人事業・フリーランス）", "biz") +
+  row("不動産収入（家賃など）", "realty") +
+  row("公的年金", "pension") +
+  row("株式の配当", "dividend") +
+  row("株式・投資信託などの売却", "sell") +
+  row("雑所得（原稿料・副業・暗号資産など）", "misc") +
+  row("土地・建物の売却", "realestatesale") +
+  row("生命保険の満期金・一時金（小規模企業共済を含む）", "lumpsum") +
+  row("退職金", "retire");
+
+document.getElementById("ded").innerHTML =
+  `<div class="q">医療費を支払いましたか（支払いの有無のみ）</div>${YN("med")}
+   <div class="note">支払いがあった場合は、医療費の領収書・医療費通知の写真又は郵送をお願いします。金額は事務所で確認します。</div>` +
+  row("ふるさと納税をしましたか", "furusato") +
+  `<div class="q">ふるさと納税のワンストップ特例は使いましたか</div>${YN("onestop")}` +
+  row("生命保険・地震保険に入っていますか（年末調整で申告済みか）", "insurance") +
+  row("国民年金・国民健康保険（自分で払った）", "kokuhoh") +
+  row("iDeCo・小規模企業共済の掛金を払いましたか", "ideco") +
+  row("住宅ローンがありますか", "loan") +
+  `<div class="q">住宅ローン：入居1年目ですか（2年目以降は年末調整で済みます）</div>${YN("loan1")}` +
+  row("障害者・ひとり親・寡婦に当てはまりますか", "disab");
+
+document.getElementById("biz").innerHTML =
+  `<div class="note">事業または不動産がある方だけ回答してください。</div>
+   <div class="q">帳簿の付け方</div>
+   <select id="book"><option>複式簿記（弥生会計など）</option><option>簡易簿記</option><option>現金主義・その他</option></select>
+   <div class="q">10万円以上の物品（パソコン・車など）を買いましたか</div>${YN("bigbuy")}
+   <div class="q">今年の売上（課税売上）の見込み（円）</div>
+   <input type="number" id="sales" placeholder="例 12000000">
+   <div class="note">1,000万円を超えると消費税の申告が必要になる場合があります。</div>
+   <div class="q">家族に給与を払っていますか（専従者）</div>${YN("family_pay")}
+   <div class="q">自宅を事業にも使っていますか（家事按分）</div>${YN("kanbun")}`;
+
+// ---- 回答の集計 ----
+function getVal(name){ const el=document.querySelector(`input[name="${name}"]:checked`); return el?el.value:"無"; }
+function bizFlag(){ return getVal("biz")==="有" || getVal("realty")==="有" || getVal("startstop")==="有"; }
+
+function go(n){
+  document.querySelectorAll(".step").forEach(s=>s.classList.remove("on"));
+  if(n===2){ document.getElementById("s2").classList.add("on"); }
+  if(n===3){
+    if(bizFlag()){ document.getElementById("s3").classList.add("on"); }
+    else { make(); document.getElementById("s4").classList.add("on"); return; }
+    return;
+  }
+  if(n===4){ make(); document.getElementById("s4").classList.add("on"); return; }
+  document.getElementById("s"+n).classList.add("on");
+}
+
+function docsFor(){
+  const d = [];
+  if(getVal("salary")==="有") d.push("給与の源泉徴収票（1月中・勤務先から）");
+  if(getVal("pension")==="有") d.push("公的年金の源泉徴収票（1月中・日本年金機構）");
+  if(getVal("dividend")==="有") d.push("上場株式配当等支払通知書（1月中・証券会社）");
+  if(getVal("sell")==="有") d.push("特定口座年間取引報告書（1月中・証券会社）");
+  if(getVal("misc")==="有") d.push("報酬の支払調書・雑所得の資料（1月中・支払者）");
+  if(getVal("retire")==="有") d.push("退職金の源泉徴収票（退職時・勤務先）");
+  if(getVal("lumpsum")==="有") d.push("満期返戻金・一時金の支払通知（支払時・保険会社）");
+  if(getVal("realestatesale")==="有") d.push("売買契約書・登記事項証明書（引渡し時）");
+  if(getVal("med")==="有") d.push("医療費通知（医療費のお知らせ・1〜2月）と領収書（写真又は郵送）");
+  if(getVal("furusato")==="有") d.push("ふるさと納税の寄附金受領書・証明書（1〜2月）");
+  if(getVal("insurance")==="有") d.push("生命保険料・地震保険料控除証明書（10〜11月頃）");
+  if(getVal("kokuhoh")==="有") d.push("国民年金・国民健康保険の支払証明書（11月頃・1〜2月頃）");
+  if(getVal("ideco")==="有") d.push("iDeCo・小規模企業共済の払込証明書（10〜11月頃）");
+  if(getVal("loan")==="有") d.push("住宅借入金等残高証明書（10月頃）" + (getVal("loan1")==="有" ? "・初年度は契約書類など" : ""));
+  if(bizFlag()){
+    d.push("事業・不動産の売上資料（請求書・収支報告書など）");
+    d.push("経費の領収書・クレジットカード明細");
+    if(getVal("bigbuy")==="有") d.push("10万円以上の購入資料（購入日・金額・用途）");
+  }
+  if(d.length===0) d.push("本人確認のみ（追加の資料はありません）");
+  return d;
+}
+
+function codeFor(){
+  const data = JSON.stringify(collect());
+  let h = 0; for(const ch of data) h = (h*31 + ch.charCodeAt(0)) >>> 0;
+  const day = new Date(); const ymd = day.getFullYear()+String(day.getMonth()+1).padStart(2,"0")+String(day.getDate()).padStart(2,"0");
+  return `${cust}-${ymd}-${h.toString(36).toUpperCase().padStart(6,"0")}`;
+}
+
+function collect(){
+  const o={};
+  document.querySelectorAll("input[type=radio]:checked").forEach(r=>o[r.name]=r.value);
+  o.book=document.getElementById("book").value;
+  o.sales=document.getElementById("sales").value;
+  return o;
+}
+
+function make(){
+  document.getElementById("docs").innerHTML = docsFor().map(x=>`<li>${x}</li>`).join("");
+  document.getElementById("ans").textContent = codeFor();
+}
+
+function mail(){
+  const subject = encodeURIComponent("確定申告ヒアリング回答 " + cust + " " + codeFor());
+  const body = encodeURIComponent("回答コード：" + codeFor() + "\n\n資料の写真を添付します。\n");
+  location.href = `mailto:mejiro.accounting@focas.work?subject=${subject}&body=${body}`;
+}
+</script>
+</body>
+</html>
