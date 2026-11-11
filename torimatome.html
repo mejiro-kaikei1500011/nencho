@@ -162,6 +162,7 @@ const chip=(code)=>{ const l=LABEL[code]||[code||'未判定','none']; const s=do
 function issues(p){
   const r=[]; const s=p.self||{};
   if(s.main==='no') r.push('メインの勤務先ではない（乙欄）');
+  if(s.kakutei) r.push('確定申告予定：'+(s.kakuteiWhy||'理由未選択'));
   if(s.foreign) r.push('外国籍：'+(s.roman||'表記なし'));
   if(s.dis||s.widow||s.single||s.student) r.push('本人区分：'+[s.dis&&'障害者',s.widow&&'寡婦',s.single&&'ひとり親',s.student&&'勤労学生'].filter(Boolean).join('・'));
   const all=[...(p.sp?[p.sp]:[]),...(p.fam||[])];

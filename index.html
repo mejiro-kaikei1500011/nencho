@@ -127,6 +127,14 @@ details.faq p{margin:6px 0 0;font-size:.88rem}
     <div class="seg"><label><input type="radio" name="main" value="yes"> はい</label><label><input type="radio" name="main" value="no"> いいえ（ほかの会社がメイン）</label></div>
     <div class="hint" id="mainNote" hidden>ほかの会社がメインの場合、この会社では年末調整ができません。会社の経理担当者にその旨を伝えてください。</div>
   </div>
+  <div class="field"><span class="lbl">確定申告</span>
+    <div class="checks"><label><input type="checkbox" id="kakutei"> 来年、自分で確定申告をする予定です</label></div>
+    <div id="kakuteiBox" hidden style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+      <label for="kakuteiWhy">主な理由</label>
+      <select id="kakuteiWhy"><option value="">選んでください</option><option>給与が2,000万円を超える</option><option>副業・個人事業の収入がある</option><option>不動産の収入がある</option><option>医療費控除・ふるさと納税</option><option>住宅ローン控除の1年目</option><option>株式・不動産などの売却</option><option>その他</option></select>
+      <div class="hint">年末調整では「あなたの情報」と「家族」を入力すれば大丈夫です。保険料や住宅ローンなど、確定申告で申告するものは空欄で構いません。</div>
+    </div>
+  </div>
   <div class="field"><span class="lbl">あなた自身に当てはまるもの</span>
     <div class="checks">
       <label><input type="checkbox" id="sDis"> 障害者</label>
@@ -472,6 +480,7 @@ function refreshAll(){
 
 // ===== 画面の動き =====
 $('#foreign').addEventListener('change',()=>{ $('#romanBox').hidden=!$('#foreign').checked; });
+$('#kakutei').addEventListener('change',()=>{ $('#kakuteiBox').hidden=!$('#kakutei').checked; });
 document.querySelectorAll('input[name=main]').forEach(r=>r.addEventListener('change',()=>{ $('#mainNote').hidden = !(r.checked&&r.value==='no'); }));
 document.querySelectorAll('input[name=spHas]').forEach(r=>r.addEventListener('change',()=>{ if(r.checked) setSpouse(r.value); refreshAll(); saveDraft(); }));
 document.querySelectorAll('input[name=loanHas]').forEach(r=>r.addEventListener('change',()=>{ const v=document.querySelector('input[name=loanHas]:checked')?.value; $('#loanBox').hidden=v!=='yes'; $('#loanFirst').hidden=v!=='first'; }));
@@ -489,7 +498,7 @@ const KANA=/^[ァ-ヶー・\s　]+$/;
 const radio=n=>document.querySelector(`input[name=${n}]:checked`)?.value||'';
 function collect(){
   const self={ company:$('#company').value.trim(), name:$('#name').value.trim(), kana:$('#kana').value.trim(), foreign:$('#foreign').checked, roman:$('#roman').value.trim(),
-    birth:$('#birth').value, zip:$('#zip').value.trim(), addr:$('#addr').value.trim(), head:$('#head').value.trim(), headRel:$('#headRel').value.trim(), main:radio('main'),
+    birth:$('#birth').value, zip:$('#zip').value.trim(), addr:$('#addr').value.trim(), head:$('#head').value.trim(), headRel:$('#headRel').value.trim(), main:radio('main'), kakutei:$('#kakutei').checked, kakuteiWhy:$('#kakuteiWhy').value,
     dis:$('#sDis').checked, spDis:$('#sSpDis').checked, widow:$('#sWidow').checked, single:$('#sSingle').checked, student:$('#sStudent').checked, detail:$('#sDetail').value.trim(),
     wage:num($('#selfWage').value), other:num($('#selfOther').value) };
   const prev=$('#prevJob').checked?{name:$('#prevName').value.trim(),quit:$('#prevQuit').value,pay:num($('#prevPay').value),si:num($('#prevSI').value),tax:num($('#prevTax').value),join:$('#joinDate').value,slip:$('#prevSlip').value,more:$('#prevMore').value.trim()}:null;
@@ -554,6 +563,7 @@ function summaryText(d,R){
   L.push(`会社：${s.company}`); L.push(`氏名：${s.name}（${s.kana}）${s.foreign?' / '+s.roman:''}`);
   L.push(`生年月日：${s.birth}　住所：〒${s.zip} ${s.addr}`); L.push(`世帯主：${s.head}（続柄：${s.headRel}）`);
   if(s.main==='no') L.push('※ この会社はメインの勤務先ではありません');
+  if(s.kakutei) L.push(`※ 確定申告をする予定です（${s.kakuteiWhy||'理由未選択'}）`);
   const own=[s.dis&&'障害者',s.spDis&&'特別障害者',s.widow&&'寡婦',s.single&&'ひとり親',s.student&&'勤労学生'].filter(Boolean); if(own.length) L.push(`本人の区分：${own.join('・')}${s.detail?'（'+s.detail+'）':''}`);
   L.push(`今年の給与収入：${yen(s.wage)}${s.other?'／給与以外の所得：'+yen(s.other):''} → 基礎控除 ${yen(R.sd.basic)}`);
   if(d.prev){ L.push(`中途入社：入社日${d.prev.join}／前の会社：${d.prev.name}（退職${d.prev.quit}）`+(d.prev.slip==='wait'?'　※源泉徴収票まだ届いていない':`　支払${yen(d.prev.pay)} 社保${yen(d.prev.si)} 源泉${yen(d.prev.tax)}`)); if(d.prev.more) L.push(`その他の前職：${d.prev.more}`); }
@@ -594,6 +604,7 @@ function restore(d){
   $('#selfWage').value=s.wage||''; $('#selfOther').value=s.other||'';
   $('#foreign').checked=!!s.foreign; $('#romanBox').hidden=!s.foreign;
   document.querySelectorAll('input[name=main]').forEach(r=>r.checked=r.value===s.main); $('#mainNote').hidden=s.main!=='no';
+  $('#kakutei').checked=!!s.kakutei; $('#kakuteiWhy').value=s.kakuteiWhy||''; $('#kakuteiBox').hidden=!s.kakutei;
   $('#sDis').checked=!!s.dis; $('#sSpDis').checked=!!s.spDis; $('#sWidow').checked=!!s.widow; $('#sSingle').checked=!!s.single; $('#sStudent').checked=!!s.student;
   $('#sDetailBox').hidden=!(s.dis||s.spDis||s.student);
   $('#prevJob').checked=!!d.prev; $('#prevBox').hidden=!d.prev; const pv=d.prev||{}; $('#prevName').value=pv.name||''; $('#prevQuit').value=pv.quit||''; $('#prevPay').value=pv.pay||''; $('#prevSI').value=pv.si||''; $('#prevTax').value=pv.tax||''; $('#joinDate').value=pv.join||''; $('#prevSlip').value=pv.slip||''; $('#prevMore').value=pv.more||'';
