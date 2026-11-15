@@ -112,7 +112,7 @@ details.faq p{margin:6px 0 0;font-size:.88rem}
   <h2><span class="step">1</span>あなたのこと</h2>
   <div class="field" id="mainField"><span class="lbl req">この会社は、今年あなたの収入が一番多い勤務先ですか</span>
     <div class="seg"><label><input type="radio" name="main" value="yes"> はい</label><label><input type="radio" name="main" value="no"> いいえ（ほかの会社がメイン）</label><label><input type="radio" name="main" value="none"> 給与・報酬を受け取っていない</label></div>
-    <div class="hint" id="mainNote" hidden>ほかの会社がメインの場合、この会社では年末調整ができません。会社の経理担当者にその旨を伝えてください。</div>
+    <div class="result" id="mainNote" hidden><p style="margin:0"><b>この会社では年末調整をしません。</b></p><p class="note" style="margin:6px 0 0">ただし、源泉徴収票を作るため、この「1 あなたのこと」（氏名・住所・生年月日など）は入力して、最後に回答を作って送ってください。家族・保険・住宅ローンなどの入力は不要です。扶養控除等申告書はメインの会社に出してください。</p></div>
     <div class="result" id="noPayBox" hidden><p style="margin:0"><b>この会社での年末調整は不要です。入力はここで終わりです。</b></p><p class="note" style="margin:6px 0 0">この画面は閉じて構いません。年内にこの会社から給与や報酬を受け取ることになった場合は、会社の経理担当者にお知らせください。</p></div>
   </div>
   <div class="grid">
@@ -483,9 +483,9 @@ function refreshAll(){
 // ===== 画面の動き =====
 $('#foreign').addEventListener('change',()=>{ $('#romanBox').hidden=!$('#foreign').checked; });
 $('#kakutei').addEventListener('change',()=>{ $('#kakuteiBox').hidden=!$('#kakutei').checked; });
-function applyNoPay(){ const on=radio('main')==='none'; $('#noPayBox').hidden=!on;
+function applyNoPay(){ const m=radio('main'), on=m==='none', sub=m==='no'; $('#noPayBox').hidden=!on;
   const secs=[...document.querySelectorAll('#f section.card')];
-  secs.forEach((sec,i)=>{ if(i>0) sec.classList.toggle('np-off',on); });
+  secs.forEach((sec,i)=>{ if(i>0) sec.classList.toggle('np-off', on || (sub && i<secs.length-1)); });
   [...secs[0].children].forEach(el=>{ if(el.tagName==='H2'||el.id==='mainField') return; el.classList.toggle('np-off',on); }); }
 document.querySelectorAll('input[name=main]').forEach(r=>r.addEventListener('change',()=>{ $('#mainNote').hidden = !(r.checked&&r.value==='no'); applyNoPay(); }));
 document.querySelectorAll('input[name=spHas]').forEach(r=>r.addEventListener('change',()=>{ if(r.checked) setSpouse(r.value); refreshAll(); saveDraft(); }));
@@ -523,7 +523,9 @@ function validate(d){
   if(!s.kana) e.push('あなたのフリガナ'); else if(!KANA.test(s.kana)) e.push('あなたのフリガナはカタカナで入力してください');
   if(s.foreign&&!s.roman) e.push('氏名のアルファベット表記');
   if(!s.birth) e.push('あなたの生年月日'); if(!s.zip) e.push('郵便番号'); if(!s.addr) e.push('住所'); if(!s.head) e.push('世帯主の氏名'); if(!s.headRel) e.push('世帯主との続柄');
-  if(!s.main) e.push('一番収入の多い勤務先かどうか'); if(!s.wage) e.push('あなたの今年の給与収入');
+  if(!s.main) e.push('一番収入の多い勤務先かどうか');
+  if(s.main==='no') return e;
+  if(!s.wage) e.push('あなたの今年の給与収入');
   if(d.prev && !d.prev.name) e.push('前の会社の名称');
   if(d.prev && !d.prev.slip) e.push('前の会社の源泉徴収票が手元にあるか');
   if(d.prev && d.prev.slip==='have' && !d.prev.pay) e.push('前の会社の支払金額（源泉徴収票の金額）');
@@ -568,7 +570,7 @@ function summaryText(d,R){
   L.push('【令和8年分 年末調整の回答】');
   L.push(`会社：${s.company}`); L.push(`氏名：${s.name}（${s.kana}）${s.foreign?' / '+s.roman:''}`);
   L.push(`生年月日：${s.birth}　住所：〒${s.zip} ${s.addr}`); L.push(`世帯主：${s.head}（続柄：${s.headRel}）`);
-  if(s.main==='no') L.push('※ この会社はメインの勤務先ではありません');
+  if(s.main==='no'){ L.push('※ この会社はメインの勤務先ではありません（源泉徴収票の作成用）'); if(d.memo) L.push(`連絡事項：${d.memo}`); return L.join('\n'); }
   if(s.kakutei) L.push(`※ 確定申告をする予定です（${s.kakuteiWhy||'理由未選択'}）`);
   const own=[s.dis&&'障害者',s.spDis&&'特別障害者',s.widow&&'寡婦',s.single&&'ひとり親',s.student&&'勤労学生'].filter(Boolean); if(own.length) L.push(`本人の区分：${own.join('・')}${s.detail?'（'+s.detail+'）':''}`);
   L.push(`今年の給与収入：${yen(s.wage)}${s.other?'／給与以外の所得：'+yen(s.other):''} → 基礎控除 ${yen(R.sd.basic)}`);
@@ -588,7 +590,8 @@ function summaryText(d,R){
   return L.join('\n');
 }
 $('#f').addEventListener('submit', async ev=>{
-  ev.preventDefault(); const d=collect(); const e=validate(d); const box=$('#errBox');
+  ev.preventDefault(); let d=collect(); if(d.self.main==='no') d={...d,self:{...d.self,kakutei:false,kakuteiWhy:'',wage:0,other:0},prev:null,spHas:'',sp:null,fam:[],life:[],quake:[],si:[],small:{kSmall:0,kCorpDC:0,kIdeco:0,kShogai:0},loanHas:'',loan:null};
+  const e=validate(d); const box=$('#errBox');
   if(e.length){ box.hidden=false; box.innerHTML='<b>入力が足りない項目があります</b>'; const ul=document.createElement('ul'); e.forEach(t=>{ const li=document.createElement('li'); li.textContent=t; ul.appendChild(li); }); box.appendChild(ul); $('#result').hidden=true; box.scrollIntoView({behavior:'smooth',block:'center'}); return; }
   box.hidden=true; const R=results(d);
   const payload={v:2,y:2026,k:clientCode,t:new Date().toISOString(),...d,
