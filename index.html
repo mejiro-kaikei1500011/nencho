@@ -47,6 +47,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-vis
 .checks{display:flex;flex-wrap:wrap;gap:8px 16px}
 .checks label{display:flex;align-items:center;gap:6px;font-weight:400}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
+.np-off{display:none!important}
 .seg label{border:1px solid var(--line);border-radius:999px;padding:6px 14px;display:flex;gap:6px;align-items:center;font-weight:400;cursor:pointer}
 .seg input{accent-color:var(--accent)}
 button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:9px 14px}
@@ -109,6 +110,11 @@ details.faq p{margin:6px 0 0;font-size:.88rem}
 
 <section class="card">
   <h2><span class="step">1</span>あなたのこと</h2>
+  <div class="field" id="mainField"><span class="lbl req">この会社は、今年あなたの収入が一番多い勤務先ですか</span>
+    <div class="seg"><label><input type="radio" name="main" value="yes"> はい</label><label><input type="radio" name="main" value="no"> いいえ（ほかの会社がメイン）</label><label><input type="radio" name="main" value="none"> 給与・報酬を受け取っていない</label></div>
+    <div class="hint" id="mainNote" hidden>ほかの会社がメインの場合、この会社では年末調整ができません。会社の経理担当者にその旨を伝えてください。</div>
+    <div class="result" id="noPayBox" hidden><p style="margin:0"><b>この会社での年末調整は不要です。入力はここで終わりです。</b></p><p class="note" style="margin:6px 0 0">この画面は閉じて構いません。年内にこの会社から給与や報酬を受け取ることになった場合は、会社の経理担当者にお知らせください。</p></div>
+  </div>
   <div class="grid">
     <div class="field"><label class="req" for="company">勤務先の会社名</label><input type="text" id="company" autocomplete="organization" placeholder="例：株式会社〇〇商事"></div>
     <div class="field"><label class="req" for="birth">生年月日</label><input type="date" id="birth" max="2026-12-31"></div>
@@ -122,10 +128,6 @@ details.faq p{margin:6px 0 0;font-size:.88rem}
     <div class="field"><label class="req" for="addr">住所</label><input type="text" id="addr" autocomplete="street-address" placeholder="例：東京都渋谷区東1-2-3"></div>
     <div class="field"><label class="req" for="head">世帯主の氏名</label><input type="text" id="head" placeholder="自分が世帯主なら自分の名前"></div>
     <div class="field"><label class="req" for="headRel">世帯主から見たあなたの続柄</label><input type="text" id="headRel" placeholder="例：本人／子／妻"></div>
-  </div>
-  <div class="field"><span class="lbl req">この会社は、今年あなたの収入が一番多い勤務先ですか</span>
-    <div class="seg"><label><input type="radio" name="main" value="yes"> はい</label><label><input type="radio" name="main" value="no"> いいえ（ほかの会社がメイン）</label></div>
-    <div class="hint" id="mainNote" hidden>ほかの会社がメインの場合、この会社では年末調整ができません。会社の経理担当者にその旨を伝えてください。</div>
   </div>
   <div class="field"><span class="lbl">確定申告</span>
     <div class="checks"><label><input type="checkbox" id="kakutei"> 来年、自分で確定申告をする予定です</label></div>
@@ -481,7 +483,11 @@ function refreshAll(){
 // ===== 画面の動き =====
 $('#foreign').addEventListener('change',()=>{ $('#romanBox').hidden=!$('#foreign').checked; });
 $('#kakutei').addEventListener('change',()=>{ $('#kakuteiBox').hidden=!$('#kakutei').checked; });
-document.querySelectorAll('input[name=main]').forEach(r=>r.addEventListener('change',()=>{ $('#mainNote').hidden = !(r.checked&&r.value==='no'); }));
+function applyNoPay(){ const on=radio('main')==='none'; $('#noPayBox').hidden=!on;
+  const secs=[...document.querySelectorAll('#f section.card')];
+  secs.forEach((sec,i)=>{ if(i>0) sec.classList.toggle('np-off',on); });
+  [...secs[0].children].forEach(el=>{ if(el.tagName==='H2'||el.id==='mainField') return; el.classList.toggle('np-off',on); }); }
+document.querySelectorAll('input[name=main]').forEach(r=>r.addEventListener('change',()=>{ $('#mainNote').hidden = !(r.checked&&r.value==='no'); applyNoPay(); }));
 document.querySelectorAll('input[name=spHas]').forEach(r=>r.addEventListener('change',()=>{ if(r.checked) setSpouse(r.value); refreshAll(); saveDraft(); }));
 document.querySelectorAll('input[name=loanHas]').forEach(r=>r.addEventListener('change',()=>{ const v=document.querySelector('input[name=loanHas]:checked')?.value; $('#loanBox').hidden=v!=='yes'; $('#loanFirst').hidden=v!=='first'; }));
 ['sDis','sSpDis','sStudent'].forEach(id=>$('#'+id).addEventListener('change',()=>{ $('#sDetailBox').hidden=!($('#sDis').checked||$('#sSpDis').checked||$('#sStudent').checked); }));
@@ -603,7 +609,7 @@ function restore(d){
   ['company','name','kana','roman','birth','zip','addr','head','headRel','sDetail'].forEach(k=>{ const el=$('#'+k); if(el) el.value=(k==='sDetail'?s.detail:s[k])||''; });
   $('#selfWage').value=s.wage||''; $('#selfOther').value=s.other||'';
   $('#foreign').checked=!!s.foreign; $('#romanBox').hidden=!s.foreign;
-  document.querySelectorAll('input[name=main]').forEach(r=>r.checked=r.value===s.main); $('#mainNote').hidden=s.main!=='no';
+  document.querySelectorAll('input[name=main]').forEach(r=>r.checked=r.value===s.main); $('#mainNote').hidden=s.main!=='no'; applyNoPay();
   $('#kakutei').checked=!!s.kakutei; $('#kakuteiWhy').value=s.kakuteiWhy||''; $('#kakuteiBox').hidden=!s.kakutei;
   $('#sDis').checked=!!s.dis; $('#sSpDis').checked=!!s.spDis; $('#sWidow').checked=!!s.widow; $('#sSingle').checked=!!s.single; $('#sStudent').checked=!!s.student;
   $('#sDetailBox').hidden=!(s.dis||s.spDis||s.student);
