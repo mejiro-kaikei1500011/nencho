@@ -110,7 +110,7 @@ details.faq p{margin:6px 0 0;font-size:.88rem}
 
 <section class="card">
   <h2><span class="step">1</span>あなたのこと</h2>
-  <div class="field" id="mainField"><span class="lbl req">この会社は、今年あなたの収入が一番多い勤務先ですか</span>
+  <div class="field" id="mainField"><span class="lbl req">この会社は、あなたの主な勤務先ですか</span>
     <div class="seg"><label><input type="radio" name="main" value="yes"> はい</label><label><input type="radio" name="main" value="no"> いいえ（ほかの会社がメイン）</label><label><input type="radio" name="main" value="none"> 給与・報酬を受け取っていない</label></div>
     <div class="result" id="mainNote" hidden><p style="margin:0"><b>この会社では年末調整をしません。</b></p><p class="note" style="margin:6px 0 0">ただし、源泉徴収票を作るため、この「1 あなたのこと」（氏名・住所・生年月日など）は入力して、最後に回答を作って送ってください。家族・保険・住宅ローンなどの入力は不要です。扶養控除等申告書はメインの会社に出してください。</p></div>
     <div class="result" id="noPayBox" hidden><p style="margin:0"><b>この会社での年末調整は不要です。入力はここで終わりです。</b></p><p class="note" style="margin:6px 0 0">この画面は閉じて構いません。年内にこの会社から給与や報酬を受け取ることになった場合は、会社の経理担当者にお知らせください。</p></div>
@@ -523,7 +523,7 @@ function validate(d){
   if(!s.kana) e.push('あなたのフリガナ'); else if(!KANA.test(s.kana)) e.push('あなたのフリガナはカタカナで入力してください');
   if(s.foreign&&!s.roman) e.push('氏名のアルファベット表記');
   if(!s.birth) e.push('あなたの生年月日'); if(!s.zip) e.push('郵便番号'); if(!s.addr) e.push('住所'); if(!s.head) e.push('世帯主の氏名'); if(!s.headRel) e.push('世帯主との続柄');
-  if(!s.main) e.push('一番収入の多い勤務先かどうか');
+  if(!s.main) e.push('この会社が主な勤務先かどうか');
   if(s.main==='no') return e;
   if(!s.wage) e.push('あなたの今年の給与収入');
   if(d.prev && !d.prev.name) e.push('前の会社の名称');
@@ -644,7 +644,7 @@ const HELP=[
  [/アルファベット表記/,'在留カードに書かれているとおりに、大文字で入力してください。'],
  [/^世帯主の氏名/,'住民票の世帯主です。あなたが世帯主なら自分の名前を、親と同居していて親が世帯主なら親の名前を書きます。'],
  [/世帯主から見たあなたの続柄/,'世帯主があなた自身なら「本人」。親が世帯主なら「子」、配偶者が世帯主なら「夫」または「妻」です。'],
- [/一番多い勤務先/,'2か所以上で働いている人は、収入が一番多い会社にだけこの申告書を出せます。副業先には出さないでください。'],
+ [/主な勤務先ですか/,'2か所以上で働いている人は、どちらか1か所（主に働いている会社）にだけ申告書を出せます。もう一方の会社には出さないでください。収入が多い方でなくても構いません。'],
  [/当てはまるもの$/,'<b>寡婦</b>：夫と死別・離婚した後に再婚していない女性など（所得500万円以下）。<b>ひとり親</b>：未婚・死別・離婚で、生計を同じくする子がいる人（所得500万円以下）。<b>勤労学生</b>：学生で給与収入が約163万円以下の人。くわしくは会社にご確認ください。'],
  [/^今年の給与収入/,'税金などが引かれる前の総支給額（給料＋賞与）の1〜12月の見込みです。通勤手当（交通費）は含めません。今年入社した人は、前の会社の分も含めます。'],
  [/^給与以外の所得/,'副業（給与以外）・不動産・年金などの「所得」（収入から経費を引いた額）です。ない人は空欄で大丈夫です。'],
